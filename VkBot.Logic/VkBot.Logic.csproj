@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
@@ -12,8 +11,8 @@
     <Reference Include="VkBot.Data">
       <HintPath>..\VkBot.Data\bin\Debug\netcoreapp2.1\VkBot.Data.dll</HintPath>
     </Reference>
-    <Reference Include="VkBot.Logic">
-      <HintPath>..\VkBot.Logic\bin\Debug\netcoreapp2.1\VkBot.Logic.dll</HintPath>
+    <Reference Include="VkBot.Interfaces">
+      <HintPath>..\VkBot.Interfaces\bin\Debug\netcoreapp2.1\VkBot.Interfaces.dll</HintPath>
     </Reference>
   </ItemGroup>
 

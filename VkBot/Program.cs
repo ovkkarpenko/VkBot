@@ -6,7 +6,10 @@ namespace VkBot
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            VkBot vkBot = new VkBot();
+            vkBot.Run();
+
+            Console.ReadKey();
         }
     }
 }

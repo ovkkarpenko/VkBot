@@ -6,7 +6,15 @@
 
   <ItemGroup>
     <Folder Include="Configuration\" />
-    <Folder Include="Repositories\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="VkBot.Core">
+      <HintPath>..\VkBot.Core\bin\Debug\netcoreapp2.1\VkBot.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="VkBot.Interfaces">
+      <HintPath>..\VkBot.Interfaces\bin\Debug\netcoreapp2.1\VkBot.Interfaces.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -4,4 +4,10 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="VkBot.Core">
+      <HintPath>..\VkBot.Core\bin\Debug\netcoreapp2.1\VkBot.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
