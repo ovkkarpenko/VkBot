@@ -7,7 +7,7 @@ namespace VkBot
         static void Main(string[] args)
         {
             VkBot vkBot = new VkBot();
-            vkBot.Run();
+            vkBot.Run("");
 
             Console.ReadKey();
         }

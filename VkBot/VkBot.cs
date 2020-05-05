@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using VkBot.Core.Entities;
+using VkBot.Data.Repositories;
 using VkBot.Logic.Services;
 
 namespace VkBot
@@ -19,9 +20,9 @@ namespace VkBot
             _threads = new Thread[CountThreeds];
         }
 
-        public void Run(string token)
+        public void Run(string siteToken)
         {
-            if (_apiService.Auth(token))
+            if (_apiService.Auth(siteToken))
             {
                 _settings = _apiService.GetBotSettings();
                 Start();
@@ -50,7 +51,7 @@ namespace VkBot
 
         private void Update()
         {
-            VkComService vkComService = new VkComService();
+            VkComService vkComService = new VkComService(new Vkcom(""));
 
             AccountModel account = _apiService.GetFreeAccount();
 

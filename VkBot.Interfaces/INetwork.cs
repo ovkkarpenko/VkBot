@@ -4,11 +4,13 @@ namespace VkBot.Interfaces
 {
     public interface INetwork
     {
-        AccountInfoModel Auth();
+        bool Auth();
 
-        bool AddLike(string postId);
+        void AddLike(string ownerId, string itemId);
 
-        bool AddRepost(string postId);
+        bool IsLiked(string ownerId, string itemId);
+
+        bool AddRepost(string ownerId, string itemId);
 
         bool AddFriend(string userId);
 
