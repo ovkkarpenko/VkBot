@@ -8,12 +8,16 @@ namespace VkBot.Interfaces
 
         void AddLike(string ownerId, string itemId);
 
+        bool AddRepost(string objectId);
+
+        void AddFriend(string userId);
+
+        void JoinGroup(string groupId);
+
         bool IsLiked(string ownerId, string itemId);
 
-        bool AddRepost(string ownerId, string itemId);
+        bool IsMember(string groupId);
 
-        bool AddFriend(string userId);
-
-        bool AddGroup(string groupId);
+        bool IsFriend(string groupId);
     }
 }

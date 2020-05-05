@@ -49,20 +49,53 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void ParseCaptchaTest()
+        public void AddRepostTest()
         {
             //given
             Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
 
-            string captchaUrl = "https://vk.com/captcha.php?sid=115072837620&s=1";
+            string objectId = "wall1_2442097";
 
             //when
             vkcom.Auth();
-            string result = vkcom.ParseCaptcha(captchaUrl);
+            bool isReposted = vkcom.AddRepost(objectId);
 
             //then
-            Assert.IsNotNull(result, "Failed to parse captcha");
-            Assert.IsTrue(result.Length >= 5);
+            Assert.IsTrue(isReposted, "Failed to repost");
+        }
+
+        [TestMethod]
+        public void AddFriendTest()
+        {
+            //given
+            Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
+
+            string userId = "1";
+
+            //when
+            vkcom.Auth();
+            vkcom.AddFriend(userId);
+
+            //then
+            bool isMember = vkcom.IsFriend(userId);
+            Assert.IsTrue(isMember, "Failed to add friend");
+        }
+
+        [TestMethod]
+        public void JoinGroupTest()
+        {
+            //given
+            Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
+
+            string groupdId = "60389602";
+
+            //when
+            vkcom.Auth();
+            vkcom.JoinGroup(groupdId);
+
+            //then
+            bool isMember = vkcom.IsMember(groupdId);
+            Assert.IsTrue(isMember, "Failed to joing to the group");
         }
     }
 }

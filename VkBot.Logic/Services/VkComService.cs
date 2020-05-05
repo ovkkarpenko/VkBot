@@ -5,13 +5,13 @@ using VkBot.Interfaces;
 
 namespace VkBot.Logic.Services
 {
-    public class VkComService
+    public class VkcomService
     {
-        private readonly INetwork _vkComRepository;
+        private readonly INetwork _vkcom;
 
-        public VkComService(INetwork vkComRepository)
+        public VkcomService(INetwork vkcom)
         {
-            _vkComRepository = vkComRepository;
+            _vkcom = vkcom;
         }
 
         public AccountModel Auth(AccountModel account)

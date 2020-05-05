@@ -88,6 +88,109 @@ namespace VkBot.Data.Repositories
             }
 
             dynamic error = result.json[0].error;
+            string errorCode = error?.error_code;
+
+            //Captcha
+            if (errorCode == "14")
+            {
+                string captchaSid = error.captcha_sid;
+                dynamic json = ParseCaptcha("likes.add", parameters, captchaSid);
+
+                if (json != null)
+                {
+                    dynamic response = json[0].response;
+                }
+            }
+        }
+
+        public bool AddRepost(string objectId)
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                {"object", objectId}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("wall.repost", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response;
+                return response.success == 1;
+            }
+
+            dynamic error = result.json[0].error;
+            string errorCode = error.error_code;
+
+            //Captcha
+            if (errorCode == "14")
+            {
+                string captchaSid = error.captcha_sid;
+                dynamic json = ParseCaptcha("wall.repost", parameters, captchaSid);
+
+                if (json != null)
+                {
+                    dynamic response = json[0].response;
+                    return response.success == 1;
+                }
+            }
+
+            return false;
+        }
+
+        public void AddFriend(string userId)
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                {"user_id", userId}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("friends.add", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response;
+                return;
+            }
+
+            dynamic error = result.json[0].error;
+            string errorCode = error.error_code;
+
+            //Captcha
+            if (errorCode == "14")
+            {
+                string captchaSid = error.captcha_sid;
+                ParseCaptcha("friends.add", parameters, captchaSid);
+            }
+        }
+
+        public void JoinGroup(string groupId)
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                {"group_id", groupId}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("groups.join", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response;
+            }
+
+            dynamic error = result.json[0].error;
+            string errorCode = error?.error_code;
+
+            //Captcha
+            if (errorCode == "14")
+            {
+                string captchaSid = error.captcha_sid;
+                dynamic json = ParseCaptcha("groups.join", parameters, captchaSid);
+
+                if (json != null)
+                {
+                    dynamic response = json[0].response;
+                }
+            }
         }
 
         public bool IsLiked(string ownerId, string itemId)
@@ -112,27 +215,81 @@ namespace VkBot.Data.Repositories
             return false;
         }
 
-        public bool AddRepost(string ownerId, string itemId)
+        public bool IsMember(string groupdId)
         {
-            throw new System.NotImplementedException();
+            var parameters = new Dictionary<string, string>
+            {
+                {"group_id", groupdId},
+                {"user_id", AccountInfo.UserId},
+                {"extended", "1"}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("groups.isMember", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response;
+                return response.member == 1;
+            }
+
+            dynamic error = result.json[0].error;
+            return false;
         }
 
-        public bool AddFriend(string userId)
+        public bool IsFriend(string userId)
         {
-            throw new System.NotImplementedException();
+            var parameters = new Dictionary<string, string>
+            {
+                {"user_ids", userId}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("friends.areFriends", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response[0];
+                return response.friend_status == 1;
+            }
+
+            dynamic error = result.json[0].error;
+            return false;
         }
 
-        public bool AddGroup(string groupId)
+        private dynamic ParseCaptcha(string apiMethod, Dictionary<string, string> parameters, string captchaSid)
         {
-            throw new System.NotImplementedException();
-        }
+            while (true)
+            {
+                string captchaImageUrl = $"https://vk.com/captcha.php?sid={captchaSid}&s=1";
 
-        public string ParseCaptcha(string captchaUrl)
-        {
-            HttpResponse response = _request.Get(captchaUrl);
-            byte[] bytes = response.ToBytes();
+                HttpResponse file = _request.Get(captchaImageUrl);
+                byte[] bytes = file.ToBytes();
 
-            return _rucaptcha.ImageCaptcha(bytes);
+                string capthaKey = _rucaptcha.ImageCaptcha(bytes);
+
+                if (capthaKey != null)
+                {
+                    var copyParameters = new Dictionary<string, string>(parameters)
+                    {
+                        {"captcha_sid", captchaSid},
+                        {"captcha_key", capthaKey}
+                    };
+
+                    var result = _helper.SendRequest(() => _request.Get(GenerateUrl(apiMethod, copyParameters)));
+
+                    if (result.json[0].response != null)
+                    {
+                        return result.json[0].response;
+                    }
+
+                    dynamic error = result.json[0].error;
+                    string errorCode = error.error_code;
+
+                    if (errorCode != "14")
+                    {
+                        return error;
+                    }
+                }
+            }
         }
 
         private string GenerateUrl(string method, Dictionary<string, string> parameters = null)

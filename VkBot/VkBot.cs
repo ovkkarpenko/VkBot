@@ -51,7 +51,7 @@ namespace VkBot
 
         private void Update()
         {
-            VkComService vkComService = new VkComService(new Vkcom(""));
+            VkcomService vkComService = new VkcomService(new Vkcom(""));
 
             AccountModel account = _apiService.GetFreeAccount();
 
