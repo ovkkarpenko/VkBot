@@ -7,7 +7,12 @@ namespace VkBot.Logic.Services
 {
     public class VkComService
     {
-        private readonly IVkComRepository _vkComRepository = new VkComRepository();
+        private readonly INetwork _vkComRepository;
+
+        public VkComService(INetwork vkComRepository)
+        {
+            _vkComRepository = vkComRepository;
+        }
 
         public AccountModel Auth(AccountModel account)
         {
@@ -16,7 +21,6 @@ namespace VkBot.Logic.Services
 
         public AccountModel ReAuth(string token)
         {
-            _vkComRepository.Auth(token);
             return null;
         }
 

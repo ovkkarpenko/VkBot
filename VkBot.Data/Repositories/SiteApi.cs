@@ -3,7 +3,7 @@ using VkBot.Interfaces;
 
 namespace VkBot.Data.Repositories
 {
-    public class ApiRepository : IApiRepository
+    public class SiteApi : IApi
     {
         public bool Auth(string token)
         {
@@ -11,6 +11,11 @@ namespace VkBot.Data.Repositories
         }
 
         public List<string> GetBotSettings()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public List<string> GetFreeAccount()
         {
             throw new System.NotImplementedException();
         }

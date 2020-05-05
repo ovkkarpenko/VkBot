@@ -7,7 +7,7 @@ namespace VkBot.Logic.Services
 {
     public class ApiService
     {
-        private readonly IApiRepository _apiRepository = new ApiRepository();
+        private readonly IApi _siteApi = new SiteApi();
 
         public bool Auth(string token)
         {

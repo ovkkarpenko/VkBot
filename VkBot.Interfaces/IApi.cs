@@ -2,7 +2,7 @@
 
 namespace VkBot.Interfaces
 {
-    public interface IApiRepository
+    public interface IApi
     {
         bool Auth(string token);
 

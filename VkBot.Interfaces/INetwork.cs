@@ -2,9 +2,9 @@
 
 namespace VkBot.Interfaces
 {
-    public interface IVkComRepository
+    public interface INetwork
     {
-        AccountInfoModel Auth(string token);
+        AccountInfoModel Auth();
 
         bool AddLike(string postId);
 
