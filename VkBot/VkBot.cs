@@ -2,7 +2,7 @@
 using System.Threading;
 using VkBot.Core.Entities;
 using VkBot.Data.Repositories;
-using VkBot.Logic.Services;
+using VkBot.Logic.Impl;
 
 namespace VkBot
 {
@@ -10,7 +10,7 @@ namespace VkBot
     {
         private const int CountThreeds = 1;
 
-        private readonly ApiService _apiService = new ApiService();
+        private readonly ApiServiceImpl _apiService = new ApiServiceImpl();
 
         private Thread[] _threads;
         private SettingsModel _settings;

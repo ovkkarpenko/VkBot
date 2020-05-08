@@ -4,7 +4,9 @@ using System.Text;
 
 namespace VkBot.Core.Entities
 {
-    public class SettingsModel
+    public class Program
     {
+        public string Name { get; set; }
+        public string BindingKey { get; set; }
     }
 }

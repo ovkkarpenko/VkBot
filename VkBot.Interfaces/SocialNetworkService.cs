@@ -2,7 +2,7 @@
 
 namespace VkBot.Interfaces
 {
-    public interface INetwork
+    public interface SocialNetworkService
     {
         bool Auth();
 

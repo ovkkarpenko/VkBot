@@ -1,41 +1,46 @@
 ﻿using System.Collections.Generic;
+using VkBot.Core.Entities;
+using VkBot.Core.Types;
+using VkBot.Data.Repositories;
 using VkBot.Interfaces;
 
-namespace VkBot.Data.Repositories
+namespace VkBot.Logic.Impl
 {
-    public class SiteApi : IApi
+    public class ApiServiceImpl : ApiService
     {
-        public bool Auth(string token)
+        private readonly Api _api;
+
+        public ApiServiceImpl(string bindingKey)
+        {
+            _api = new Api(bindingKey);
+        }
+
+        public bool CheckAuth()
         {
             throw new System.NotImplementedException();
         }
 
-        public List<string> GetBotSettings()
+        public List<AccountModel> GetAccounts()
         {
             throw new System.NotImplementedException();
         }
 
-        public List<string> GetFreeAccount()
+        public SettingsModel GetSettings()
         {
             throw new System.NotImplementedException();
         }
 
-        public List<string> GetLikes()
+        public List<Task> GetTasks(TaskType taskType)
         {
             throw new System.NotImplementedException();
         }
 
-        public List<string> GetReposts()
+        public void SaveAccount(AccountModel account)
         {
             throw new System.NotImplementedException();
         }
 
-        public List<string> GetFriends()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public List<string> GetGroups()
+        public void MarkTaskCompleted()
         {
             throw new System.NotImplementedException();
         }

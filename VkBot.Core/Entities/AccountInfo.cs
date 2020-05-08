@@ -2,7 +2,7 @@
 
 namespace VkBot.Core.Entities
 {
-    public class AccountInfoModel
+    public class AccountInfo
     {
         public string UserId { get; set; }
 

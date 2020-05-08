@@ -4,7 +4,7 @@ using System.Text;
 
 namespace VkBot.Core.Entities
 {
-    public class ProxyModel
+    public class Proxy
     {
         public string Ip { get; set; }
         public string Port { get; set; }

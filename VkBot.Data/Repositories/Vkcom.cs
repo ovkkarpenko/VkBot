@@ -17,7 +17,7 @@ namespace VkBot.Data.Repositories
         private readonly Rucaptcha _rucaptcha;
         private readonly HttpRequest _request;
 
-        public AccountInfoModel AccountInfo { get; set; }
+        public AccountInfo AccountInfo { get; set; }
 
         public Vkcom(string token, string rucaptchaKey)
         {
@@ -55,7 +55,7 @@ namespace VkBot.Data.Repositories
                 string city = user.city?.title;
                 GenderTypes gender = user.sex == 2 ? GenderTypes.Man : GenderTypes.Woman;
 
-                AccountInfo = new AccountInfoModel
+                AccountInfo = new AccountInfo
                 {
                     UserId = id,
                     FullName = $"{firstName} {lastName}",

@@ -4,7 +4,7 @@
     {
         public string Token { get; set; }
         public string Useragent { get; set; }
-        public ProxyModel Proxy { get; set; }
-        public AccountInfoModel AccountInfo { get; set; }
+        public Proxy Proxy { get; set; }
+        public AccountInfo AccountInfo { get; set; }
     }
 }

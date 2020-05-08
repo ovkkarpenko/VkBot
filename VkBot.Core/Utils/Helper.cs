@@ -10,8 +10,8 @@ namespace VkBot.Core.Utils
         {
             HttpResponse response = request();
 
-            string content = $"[{response}]";
-            dynamic json = JArray.Parse(content);
+            string content = $"{response}";
+            dynamic json = JArray.Parse($"[{response}]");
 
             return (response, content, json);
         }
