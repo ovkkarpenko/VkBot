@@ -2,8 +2,9 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using Leaf.xNet;
+using Newtonsoft.Json;
 using VkBot.Core.Entities;
-using VkBot.Core.Types;
+using VkBot.Core.Resources;
 using VkBot.Core.Utils;
 
 namespace VkBot.Data.Repositories
@@ -22,8 +23,6 @@ namespace VkBot.Data.Repositories
             _request = new HttpRequest();
 
             _request.UserAgentRandomize();
-            _request.AddHeader("Content-Type", "application/json");
-
             _bindingKey = bindingKey;
         }
 
@@ -38,49 +37,93 @@ namespace VkBot.Data.Repositories
             dynamic response = result.json[0];
 
             Program program = new Program();
-            program.Name = response.name;
-            program.BindingKey = response.bindingKey;
+            program.name = response.name;
+            program.bindingKey = response.bindingKey;
 
             return program;
         }
 
-        public List<AccountModel> GetAccounts()
+        public List<Account> GetAccounts()
         {
-            throw new System.NotImplementedException();
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/account/{_bindingKey}")));
+            dynamic response = result.json[0];
+
+            List<Account> accounts = new List<Account>();
+
+            foreach (dynamic item in response)
+            {
+                Account account = new Account();
+                account.id = item.id;
+                account.userId = item.userId;
+                account.token = item.token;
+                account.fullName = item.fullName;
+                account.country = item.country;
+                account.userAgent = item.userAgent;
+                account.proxy = item.proxy;
+                //account.Birthday = item.birthday;
+                if (item.gender != null) account.gender = item.gender;
+                account.status = item.status;
+
+                accounts.Add(account);
+            }
+
+            return accounts;
         }
 
-        public SettingsModel GetSettings()
+        public Settings GetSettings()
         {
             var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/settings/{_bindingKey}")));
             dynamic response = result.json[0];
 
-            SettingsModel settings = new SettingsModel();
-            settings.Proxies = Regex.Split($"{response.proxies}", "\r\n").ToList();
-            settings.UserAgents = Regex.Split($"{response.userAgents}", "\r\n").ToList();
-            settings.RucaptchaKey = response.rucaptchaKey;
-            settings.TimeoutLikes = response.timeoutLikes;
-            settings.TimeoutFriend = response.timeoutFriend;
-            settings.TimeoutRepost = response.timeoutRepost;
-            settings.TimeoutGroup = response.timeoutGroup;
-            settings.TimeoutAfterTask = response.timeoutAfterTask;
-            settings.ProxyType = response.proxyType;
+            Settings settings = new Settings();
+            settings.proxies = Regex.Split($"{response.proxies}", "\r\n").ToList();
+            settings.userAgents = Regex.Split($"{response.userAgents}", "\r\n").ToList();
+            settings.rucaptchaKey = response.rucaptchaKey;
+            settings.timeoutLikes = response.timeoutLikes;
+            settings.timeoutFriend = response.timeoutFriend;
+            settings.timeoutRepost = response.timeoutRepost;
+            settings.timeoutGroup = response.timeoutGroup;
+            settings.timeoutAfterTask = response.timeoutAfterTask;
+            settings.proxyType = response.proxyType;
 
             return settings;
         }
 
-        public List<Task> GetTasks(TaskType taskType)
+        public List<Task> GetTasks(FindTasksRequestResource requestResource)
         {
-            throw new System.NotImplementedException();
+            dynamic json = JsonConvert.SerializeObject(requestResource);
+            var result = _helper.SendRequest(() => _request.Post(GenerateUrl($"program/task"), json, "application/json"));
+            dynamic response = result.json[0];
+
+            List<Task> tasks = new List<Task>();
+
+            foreach (dynamic item in response)
+            {
+                Task task = new Task();
+                task.id = item.id;
+                task.url = item.url;
+                task.count = item.count;
+                task.status = item.status;
+                task.objectType = item.objectType;
+
+                tasks.Add(task);
+            }
+
+            return tasks;
         }
 
-        public void SaveAccount(AccountModel account)
+        public bool SaveAccount(Account account)
         {
-            throw new System.NotImplementedException();
+            dynamic json = JsonConvert.SerializeObject(account);
+            var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"program/account"), json, "application/json"));
+            return true;
         }
 
-        public void MarkTaskCompleted()
+        public bool MarkTaskCompleted(MarkTaskCompletedRequestResource requestResource)
         {
-            throw new System.NotImplementedException();
+            dynamic json = JsonConvert.SerializeObject(requestResource);
+            var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"program/task/completed"), json, "application/json"));
+            return true;
         }
 
         private string GenerateUrl(string method, Dictionary<string, string> parameters = null)

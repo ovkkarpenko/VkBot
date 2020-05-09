@@ -1,4 +1,5 @@
-﻿using VkBot.Core.Entities;
+﻿using System.Collections.Generic;
+using VkBot.Core.Entities;
 
 namespace VkBot.Interfaces
 {
@@ -6,18 +7,12 @@ namespace VkBot.Interfaces
     {
         bool Auth();
 
-        void AddLike(string ownerId, string itemId);
+        List<Task> DoLikes(List<Task> tasks);
 
-        bool AddRepost(string objectId);
+        List<Task> DoReposts(List<Task> tasks);
 
-        void AddFriend(string userId);
+        List<Task> DoFriends(List<Task> tasks);
 
-        void JoinGroup(string groupId);
-
-        bool IsLiked(string ownerId, string itemId);
-
-        bool IsMember(string groupId);
-
-        bool IsFriend(string groupId);
+        List<Task> DoGroups(List<Task> tasks);
     }
 }

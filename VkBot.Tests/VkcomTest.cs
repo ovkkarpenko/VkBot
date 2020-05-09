@@ -97,5 +97,39 @@ namespace VkBot.Tests
             bool isMember = vkcom.IsMember(groupdId);
             Assert.IsTrue(isMember, "Failed to joing to the group");
         }
+
+        [TestMethod]
+        public void GetUserIdByUsernameTest()
+        {
+            //given
+            Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
+
+            string username = "durov";
+            string expected = "1";
+
+            //when
+            vkcom.Auth();
+            string userId = vkcom.GetUserIdByUsername(username);
+
+            //then
+            Assert.AreEqual(userId, expected);
+        }
+
+        [TestMethod]
+        public void GetGroupIdByUsernameTest()
+        {
+            //given
+            Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
+
+            string username = "artpodslushano";
+            string expected = "60389602";
+
+            //when
+            vkcom.Auth();
+            string groupId = vkcom.GetGroupIdByUsername(username);
+
+            //then
+            Assert.AreEqual(groupId, expected);
+        }
     }
 }

@@ -1,30 +1,43 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using VkBot.Core.Entities;
+using VkBot.Core.Resources;
+using VkBot.Core.Types;
+using VkBot.Core.Utils;
 using VkBot.Data.Repositories;
+using VkBot.Interfaces;
 using VkBot.Logic.Impl;
 
 namespace VkBot
 {
-    class VkBot
+    public class VkBot
     {
+        private readonly object _mLock = new object();
         private const int CountThreeds = 1;
-
-        private readonly ApiServiceImpl _apiService = new ApiServiceImpl();
-
+        private string _bindingKey;
         private Thread[] _threads;
-        private SettingsModel _settings;
+        private Settings _settings;
+        private IEnumerator<Account> _accounts;
 
-        public VkBot()
+        private readonly ApiServiceImpl _apiService;
+
+        public VkBot(string bindingKey)
         {
+            _apiService = new ApiServiceImpl(bindingKey);
             _threads = new Thread[CountThreeds];
+
+            _bindingKey = bindingKey;
         }
 
-        public void Run(string siteToken)
+        public void Run()
         {
-            if (_apiService.Auth(siteToken))
+            if (_apiService.CheckAuth())
             {
-                _settings = _apiService.GetBotSettings();
+                _settings = _apiService.GetSettings();
+                _accounts = new Iterator<Account>(_apiService.GetAccounts()).GetItems();
+
                 Start();
             }
         }
@@ -33,7 +46,13 @@ namespace VkBot
         {
             for (var i = 0; i < _threads.Length; i++)
             {
-                _threads[i] = new Thread(Update);
+                _threads[i] = new Thread(() =>
+                {
+                    lock (_mLock)
+                    {
+                        Update();
+                    }
+                });
                 _threads[i].Start();
             }
         }
@@ -51,29 +70,44 @@ namespace VkBot
 
         private void Update()
         {
-            VkcomService vkComService = new VkcomService(new Vkcom(""));
-
-            AccountModel account = _apiService.GetFreeAccount();
-
-            account = vkComService.Auth(account);
-            if (account == null)
+            while (_accounts.MoveNext() && _accounts.Current != null)
             {
-                return;
-            }
+                Account account = _accounts.Current;
 
-            while (true)
-            {
-                List<string> likes = _apiService.GetLikes();
-                vkComService.DoLikes(likes);
+                SocialNetworkService vkCom = new VkcomServiceImpl(account.token, _settings.rucaptchaKey);
 
-                List<string> reposts = _apiService.GetReposts();
-                vkComService.DoReposts(reposts);
+                bool isAuth = vkCom.Auth();
+                if (!isAuth)
+                {
 
-                List<string> friends = _apiService.GetFriends();
-                vkComService.DoFriends(friends);
+                }
 
-                List<string> groups = _apiService.GetGroups();
-                vkComService.DoGroups(groups);
+                List<Task> friends =
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.FRIEND));
+
+                if (friends.Count != 0)
+                {
+                    List<Task> tasksDone = vkCom.DoFriends(friends);
+                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                }
+
+                List<Task> groups =
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.GROUP));
+
+                if (groups.Count != 0)
+                {
+                    List<Task> tasksDone = vkCom.DoGroups(groups);
+                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                }
+
+                List<Task> likes =
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.LIKE));
+
+                if (likes.Count != 0)
+                {
+                    List<Task> tasksDone = vkCom.DoLikes(likes);
+                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                }
             }
         }
     }

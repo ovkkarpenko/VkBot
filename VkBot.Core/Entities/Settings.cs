@@ -5,16 +5,16 @@ using Leaf.xNet;
 
 namespace VkBot.Core.Entities
 {
-    public class SettingsModel
+    public class Settings
     {
-        public List<string> Proxies { get; set; }
-        public List<string> UserAgents { get; set; }
-        public string RucaptchaKey { get; set; }
-        public int TimeoutLikes { get; set; }
-        public int TimeoutFriend { get; set; }
-        public int TimeoutRepost { get; set; }
-        public int TimeoutGroup { get; set; }
-        public int TimeoutAfterTask { get; set; }
-        public ProxyType ProxyType { get; set; }
+        public List<string> proxies { get; set; }
+        public List<string> userAgents { get; set; }
+        public string rucaptchaKey { get; set; }
+        public int timeoutLikes { get; set; }
+        public int timeoutFriend { get; set; }
+        public int timeoutRepost { get; set; }
+        public int timeoutGroup { get; set; }
+        public int timeoutAfterTask { get; set; }
+        public ProxyType proxyType { get; set; }
     }
 }

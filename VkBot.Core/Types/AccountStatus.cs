@@ -4,8 +4,8 @@ using System.Text;
 
 namespace VkBot.Core.Types
 {
-    public enum TaskType
+    public enum AccountStatus
     {
-        LIKE, FRIEND, GROUP, REPOST
+        VALID, INVALID, ERROR, NONE
     }
 }

@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Leaf.xNet" Version="5.2.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="VkBot.Core">
       <HintPath>..\VkBot.Core\bin\Debug\netcoreapp2.1\VkBot.Core.dll</HintPath>
     </Reference>

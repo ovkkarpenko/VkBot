@@ -8,7 +8,7 @@ using VkBot.Interfaces;
 
 namespace VkBot.Data.Repositories
 {
-    public class Vkcom : INetwork
+    public class Vkcom
     {
         private const string Host = "https://api.vk.com/method";
         private readonly string _token;
@@ -17,7 +17,7 @@ namespace VkBot.Data.Repositories
         private readonly Rucaptcha _rucaptcha;
         private readonly HttpRequest _request;
 
-        public AccountInfo AccountInfo { get; set; }
+        private Account Account { get; set; }
 
         public Vkcom(string token, string rucaptchaKey)
         {
@@ -52,16 +52,16 @@ namespace VkBot.Data.Repositories
                 string firstName = user.first_name;
                 string lastName = user.last_name;
                 string bdate = user.bdate;
-                string city = user.city?.title;
-                GenderTypes gender = user.sex == 2 ? GenderTypes.Man : GenderTypes.Woman;
+                string country = user.country?.title;
+                Gender gender = user.sex == 2 ? Gender.MAN : Gender.WOMAN;
 
-                AccountInfo = new AccountInfo
+                Account = new Account
                 {
-                    UserId = id,
-                    FullName = $"{firstName} {lastName}",
-                    Birthday = bdate,
-                    City = city,
-                    Gender = gender
+                    userId = id,
+                    fullName = $"{firstName} {lastName}",
+                    //Birthday = bdate,
+                    country = country,
+                    gender = gender
                 };
 
                 return true;
@@ -197,7 +197,7 @@ namespace VkBot.Data.Repositories
         {
             var parameters = new Dictionary<string, string>
             {
-                {"user_id", AccountInfo.UserId},
+                {"user_id", Account.userId},
                 {"type", "post"},
                 {"owner_id", ownerId},
                 {"item_id", itemId}
@@ -220,7 +220,7 @@ namespace VkBot.Data.Repositories
             var parameters = new Dictionary<string, string>
             {
                 {"group_id", groupdId},
-                {"user_id", AccountInfo.UserId},
+                {"user_id", Account.userId},
                 {"extended", "1"}
             };
 
@@ -255,9 +255,49 @@ namespace VkBot.Data.Repositories
             return false;
         }
 
+        public string GetUserIdByUsername(string username)
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                {"user_ids", username}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("users.get", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response[0];
+                return response.id;
+            }
+
+            dynamic error = result.json[0].error;
+            return null;
+        }
+
+        public string GetGroupIdByUsername(string username)
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                {"group_ids", username}
+            };
+
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl("groups.getById", parameters)));
+
+            if (result.json[0].response != null)
+            {
+                dynamic response = result.json[0].response[0];
+                return response.id;
+            }
+
+            dynamic error = result.json[0].error;
+            return null;
+        }
+
         private dynamic ParseCaptcha(string apiMethod, Dictionary<string, string> parameters, string captchaSid)
         {
-            while (true)
+            int triesRecognize = 0;
+
+            while (triesRecognize++ < 5)
             {
                 string captchaImageUrl = $"https://vk.com/captcha.php?sid={captchaSid}&s=1";
 
@@ -290,6 +330,8 @@ namespace VkBot.Data.Repositories
                     }
                 }
             }
+
+            return null;
         }
 
         private string GenerateUrl(string method, Dictionary<string, string> parameters = null)

@@ -1,54 +1,87 @@
-﻿using VkBot.Interfaces;
+﻿using System.Collections.Generic;
+using Leaf.xNet;
+using VkBot.Core.Entities;
+using VkBot.Data.Repositories;
+using VkBot.Interfaces;
 
 namespace VkBot.Logic.Impl
 {
     public class VkcomServiceImpl : SocialNetworkService
     {
-        private readonly SocialNetworkService _vkcom;
+        private readonly Vkcom _vkcom;
 
-        public VkcomServiceImpl(SocialNetworkService vkcom)
+        public VkcomServiceImpl(string token, string rucaptchaKey)
         {
-            _vkcom = vkcom;
+            _vkcom = new Vkcom(token, rucaptchaKey);
         }
 
         public bool Auth()
         {
-            throw new System.NotImplementedException();
+            bool isAuth = _vkcom.Auth();
+            return isAuth;
         }
 
-        public void AddLike(string ownerId, string itemId)
+        public List<Task> DoLikes(List<Task> tasks)
         {
-            throw new System.NotImplementedException();
+            List<Task> tasksDone = new List<Task>();
+
+            foreach (Task task in tasks)
+            {
+                _vkcom.AddLike();
+
+                if (_vkcom.IsLiked())
+                {
+                    tasksDone.Add(task);
+                }
+            }
+
+            return tasksDone;
         }
 
-        public bool AddRepost(string objectId)
+        public List<Task> DoReposts(List<Task> tasks)
         {
-            throw new System.NotImplementedException();
+            //_vkcom.AddRepost(objectId);
+            return null;
         }
 
-        public void AddFriend(string userId)
+        public List<Task> DoFriends(List<Task> tasks)
         {
-            throw new System.NotImplementedException();
+            List<Task> tasksDone = new List<Task>();
+
+            foreach (Task task in tasks)
+            {
+                string username = task.url.Substring(task.url.LastIndexOf("/") + 1);
+                string userId = _vkcom.GetUserIdByUsername(username);
+
+                _vkcom.AddFriend(userId);
+
+                if (_vkcom.IsFriend(userId))
+                {
+                    tasksDone.Add(task);
+                }
+            }
+
+            return tasksDone;
         }
 
-        public void JoinGroup(string groupId)
+        public List<Task> DoGroups(List<Task> tasks)
         {
-            throw new System.NotImplementedException();
-        }
+            List<Task> tasksDone = new List<Task>();
 
-        public bool IsLiked(string ownerId, string itemId)
-        {
-            throw new System.NotImplementedException();
-        }
+            foreach (Task task in tasks)
+            {
+                string username = task.url.Substring(task.url.LastIndexOf("/") + 1);
+                string groupId = _vkcom.GetGroupIdByUsername(username);
 
-        public bool IsMember(string groupId)
-        {
-            throw new System.NotImplementedException();
-        }
+                _vkcom.JoinGroup(groupId);
 
-        public bool IsFriend(string groupId)
-        {
-            throw new System.NotImplementedException();
+                if (_vkcom.IsMember(groupId))
+                {
+                    tasksDone.Add(task);
+                }
+            }
+
+            return tasksDone;
         }
     }
 }

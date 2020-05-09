@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using VkBot.Core.Entities;
+using VkBot.Core.Resources;
 using VkBot.Core.Types;
 using VkBot.Data.Repositories;
 using VkBot.Interfaces;
@@ -17,32 +18,39 @@ namespace VkBot.Logic.Impl
 
         public bool CheckAuth()
         {
-            throw new System.NotImplementedException();
+            Program program = _api.GetProgram();
+            return program != null;
         }
 
-        public List<AccountModel> GetAccounts()
+        public List<Account> GetAccounts()
         {
-            throw new System.NotImplementedException();
+            List<Account> accounts = _api.GetAccounts();
+            return accounts;
         }
 
-        public SettingsModel GetSettings()
+        public Settings GetSettings()
         {
-            throw new System.NotImplementedException();
+            Settings settings = _api.GetSettings();
+            return settings;
         }
 
-        public List<Task> GetTasks(TaskType taskType)
+        public List<Task> GetTasks(FindTasksRequestResource requestResource)
         {
-            throw new System.NotImplementedException();
+            List<Task> tasks = _api.GetTasks(requestResource);
+            return tasks;
         }
 
-        public void SaveAccount(AccountModel account)
+        public void SaveAccount(Account account)
         {
-            throw new System.NotImplementedException();
+            _api.SaveAccount(account);
         }
 
-        public void MarkTaskCompleted()
+        public void MarkTasksCompleted(List<Task> tasks, int accountId)
         {
-            throw new System.NotImplementedException();
+            foreach (var task in tasks)
+            {
+                _api.MarkTaskCompleted(new MarkTaskCompletedRequestResource(task.id, accountId));
+            }
         }
     }
 }

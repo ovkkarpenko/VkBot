@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using VkBot.Core.Entities;
-using VkBot.Core.Types;
+using VkBot.Core.Resources;
 
 namespace VkBot.Interfaces
 {
@@ -8,14 +8,14 @@ namespace VkBot.Interfaces
     {
         bool CheckAuth();
 
-        List<AccountModel> GetAccounts();
+        List<Account> GetAccounts();
 
-        SettingsModel GetSettings();
+        Settings GetSettings();
 
-        List<Task> GetTasks(TaskType taskType);
+        List<Task> GetTasks(FindTasksRequestResource requestResource);
 
-        void SaveAccount(AccountModel account);
+        void SaveAccount(Account account);
 
-        void MarkTaskCompleted();
+        void MarkTasksCompleted(List<Task> tasks, int accountId);
     }
 }

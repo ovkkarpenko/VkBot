@@ -1,10 +1,19 @@
-﻿namespace VkBot.Core.Entities
+﻿using System;
+using VkBot.Core.Types;
+
+namespace VkBot.Core.Entities
 {
-    public class AccountModel
+    public class Account
     {
-        public string Token { get; set; }
-        public string Useragent { get; set; }
-        public Proxy Proxy { get; set; }
-        public AccountInfo AccountInfo { get; set; }
+        public int id { get; set; }
+        public string userId { get; set; }
+        public string token { get; set; }
+        public string fullName { get; set; }
+        public string country { get; set; }
+        public string userAgent { get; set; }
+        public string proxy { get; set; }
+        public DateTime birthday { get; set; }
+        public Gender gender { get; set; }
+        public AccountStatus status { get; set; }
     }
 }
