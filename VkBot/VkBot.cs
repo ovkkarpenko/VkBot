@@ -79,7 +79,7 @@ namespace VkBot
                 bool isAuth = vkCom.Auth();
                 if (!isAuth)
                 {
-
+                    continue;
                 }
 
                 List<Task> friends =
@@ -106,6 +106,15 @@ namespace VkBot
                 if (likes.Count != 0)
                 {
                     List<Task> tasksDone = vkCom.DoLikes(likes);
+                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                }
+
+                List<Task> reposts =
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.REPOST));
+
+                if (reposts.Count != 0)
+                {
+                    List<Task> tasksDone = vkCom.DoReposts(reposts);
                     _apiService.MarkTasksCompleted(tasksDone, account.id);
                 }
             }

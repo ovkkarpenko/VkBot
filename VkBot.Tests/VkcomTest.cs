@@ -1,4 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using VkBot.Core.Types;
 using VkBot.Data.Repositories;
 
 namespace VkBot.Tests
@@ -41,7 +42,7 @@ namespace VkBot.Tests
 
             //when
             vkcom.Auth();
-            vkcom.AddLike(ownerId, itemId);
+            vkcom.AddLike(ownerId, itemId, ObjectType.POST);
 
             //then
             bool isLiked = vkcom.IsLiked(ownerId, itemId);

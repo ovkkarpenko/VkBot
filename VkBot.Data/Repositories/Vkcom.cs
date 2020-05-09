@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Leaf.xNet;
 using VkBot.Core.Entities;
@@ -71,11 +72,11 @@ namespace VkBot.Data.Repositories
             return false;
         }
 
-        public void AddLike(string ownerId, string itemId)
+        public void AddLike(string ownerId, string itemId, ObjectType objectType)
         {
             var parameters = new Dictionary<string, string>
             {
-                {"type", "post"},
+                {"type", Enum.GetName(typeof(ObjectType), objectType).ToLower()},
                 {"owner_id", ownerId},
                 {"item_id", itemId}
             };
@@ -103,11 +104,11 @@ namespace VkBot.Data.Repositories
             }
         }
 
-        public bool AddRepost(string objectId)
+        public bool AddRepost(string @object)
         {
             var parameters = new Dictionary<string, string>
             {
-                {"object", objectId}
+                {"object", @object}
             };
 
             var result = _helper.SendRequest(() => _request.Get(GenerateUrl("wall.repost", parameters)));
@@ -193,12 +194,12 @@ namespace VkBot.Data.Repositories
             }
         }
 
-        public bool IsLiked(string ownerId, string itemId)
+        public bool IsLiked(string ownerId, string itemId, ObjectType objectType)
         {
             var parameters = new Dictionary<string, string>
             {
                 {"user_id", Account.userId},
-                {"type", "post"},
+                {"type", Enum.GetName(typeof(ObjectType), objectType).ToLower()},
                 {"owner_id", ownerId},
                 {"item_id", itemId}
             };
