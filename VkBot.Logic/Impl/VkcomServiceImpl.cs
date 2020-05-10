@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Leaf.xNet;
 using VkBot.Core.Entities;
+using VkBot.Core.Exceptions;
 using VkBot.Core.Utils;
 using VkBot.Data.Repositories.Vkcom;
 using VkBot.Interfaces;
@@ -17,16 +19,29 @@ namespace VkBot.Logic.Impl
         private static readonly log4net.ILog _log =
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public VkcomServiceImpl(string token, string rucaptchaKey)
+        public VkcomServiceImpl(Account account, string rucaptchaKey)
         {
             _helper = new Helper();
-            _vkcom = new Vkcom(token, rucaptchaKey);
+            _vkcom = new Vkcom(account, rucaptchaKey);
         }
 
         public bool Auth()
         {
-            bool isAuth = _vkcom.Auth();
-            return isAuth;
+            try
+            {
+                Account account = _vkcom.GetCurrentUser();
+                return account != null;
+            }
+            catch (AuthorizationException e)
+            {
+
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            return false;
         }
 
         public List<Task> DoLikes(List<Task> tasks)
@@ -35,25 +50,31 @@ namespace VkBot.Logic.Impl
 
             foreach (Task task in tasks)
             {
-                string ownerId = "";
-                string itemId = "";
-
-                if (task.url.IndexOf("?z=") != -1)
+                try
                 {
-                    ownerId = task.url.Substring($"?z={_helper.GetObjectTypeName(task.objectType)}", "_");
-                    itemId = task.url.SubstringLast("%2F", "_");
+                    var url = _helper.ParseUrlIntoOwnerAndItem(task.url, task.objectType);
+
+                    _vkcom.AddLike(url.ownerId, url.itemId, task.objectType);
+                    if (_vkcom.IsLiked(url.ownerId, url.itemId, task.objectType))
+                    {
+                        tasksDone.Add(task);
+                    }
                 }
-                else
+                catch (AuthorizationException e)
                 {
-                    ownerId = task.url.Substring(_helper.GetObjectTypeName(task.objectType), "_");
-                    itemId = task.url.Substring(task.url.LastIndexOf("_") + 1);
+
                 }
-
-                _vkcom.AddLike(ownerId, itemId, task.objectType);
-
-                if (_vkcom.IsLiked(ownerId, itemId, task.objectType))
+                catch (ArgumentException e)
                 {
-                    tasksDone.Add(task);
+
+                }
+                catch (CaptchaException e)
+                {
+
+                }
+                catch (Exception e)
+                {
+
                 }
             }
 
@@ -67,12 +88,9 @@ namespace VkBot.Logic.Impl
 
             foreach (Task task in tasks)
             {
-                string @object = task.url.IndexOf("?z=") != -1
-                    ? task.url.Substring("?z=", "%2F")
-                    : task.url.Substring(task.url.LastIndexOf("/") + 1);
+                string @object = _helper.ParseObjectFromUrl(task.url);
 
                 bool isReposted = _vkcom.AddRepost(@object);
-
                 if (isReposted)
                 {
                     tasksDone.Add(task);
@@ -89,12 +107,10 @@ namespace VkBot.Logic.Impl
 
             foreach (Task task in tasks)
             {
-                string username = task.url.Substring(task.url.LastIndexOf("/") + 1);
-                string userId = _vkcom.GetUserIdByUsername(username);
+                string username = _helper.ParseUsernameFromUrl(task.url);
 
-                _vkcom.AddFriend(userId);
-
-                if (_vkcom.IsFriend(userId))
+                _vkcom.AddFriend(username);
+                if (_vkcom.IsFriend(username))
                 {
                     tasksDone.Add(task);
                 }
@@ -110,12 +126,10 @@ namespace VkBot.Logic.Impl
 
             foreach (Task task in tasks)
             {
-                string username = task.url.Substring(task.url.LastIndexOf("/") + 1);
-                string groupId = _vkcom.GetGroupIdByUsername(username);
+                string username = _helper.ParseUsernameFromUrl(task.url);
 
-                _vkcom.JoinGroup(groupId);
-
-                if (_vkcom.IsMember(groupId))
+                _vkcom.JoinGroup(username);
+                if (_vkcom.IsMember(username))
                 {
                     tasksDone.Add(task);
                 }
@@ -123,6 +137,11 @@ namespace VkBot.Logic.Impl
 
             _log.Info($"IN DoGroups - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
+        }
+
+        public Account GetCurrentUser()
+        {
+            return _vkcom.Account;
         }
     }
 }

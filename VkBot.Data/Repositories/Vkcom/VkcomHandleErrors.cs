@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Leaf.xNet;
+using VkBot.Core.Exceptions;
 using VkBot.Core.Utils;
 using VkBot.Interfaces;
 
@@ -33,7 +34,14 @@ namespace VkBot.Data.Repositories.Vkcom
         {
             string errorCode = error.error_code;
 
-            //Captcha
+            if (errorCode == "5")
+            {
+                throw new AuthorizationException("Authorization error: " + error.error_msg);
+            }
+            if (errorCode == "100")
+            {
+                throw new ArgumentException("Parameters: " + _helper.ParametersToString(parameters));
+            }
             if (errorCode == "14")
             {
                 string captchaSid = error.captcha_sid;
@@ -50,8 +58,10 @@ namespace VkBot.Data.Repositories.Vkcom
                 dynamic json = _parseCaptcha.Parse(captchaImage.ToBytes(), parameters, requestFunc);
                 if (json != null && json.response != null)
                 {
-                    return successAction(json.response);
+                    return successAction != null ? successAction(json.response) : null;
                 }
+
+                throw new CaptchaException("Could not solve the captcha, error: " + json?.error.error_msg);
             }
 
             return null;

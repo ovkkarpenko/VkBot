@@ -20,6 +20,11 @@ namespace VkBot.Core.Entities
         {
         }
 
+        public Account(string token)
+        {
+            this.token = token;
+        }
+
         public Account(int id, string token)
         {
             this.id = id;

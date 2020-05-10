@@ -14,5 +14,7 @@ namespace VkBot.Interfaces
         List<Task> DoFriends(List<Task> tasks);
 
         List<Task> DoGroups(List<Task> tasks);
+
+        Account GetCurrentUser();
     }
 }

@@ -17,14 +17,15 @@ namespace VkBot.Data.Repositories.Vkcom
         private readonly IGenerateUrl _generateUrl;
         private readonly IHandleErrors _handleErrors;
 
-        private Account Account { get; set; }
+        public Account Account { get; private set; }
 
-        public Vkcom(string token, string rucaptchaKey)
+        public Vkcom(Account account, string rucaptchaKey)
         {
             _helper = new Helper();
             _request = new HttpRequest();
-            _generateUrl = new VkcomGenerateUrl("https://api.vk.com/method", token);
+            _generateUrl = new VkcomGenerateUrl("https://api.vk.com/method", account.token);
 
+            Account = account;
             _request.UserAgentRandomize();
 
             _handleErrors = new VkcomHandleErrors(_helper, _request, _generateUrl, new VkcomParseCaptcha(rucaptchaKey));
@@ -35,7 +36,7 @@ namespace VkBot.Data.Repositories.Vkcom
             _request.Dispose();
         }
 
-        public bool Auth()
+        public Account GetCurrentUser()
         {
             var parameters = new Dictionary<string, string>
             {
@@ -43,33 +44,36 @@ namespace VkBot.Data.Repositories.Vkcom
             };
 
             var result = _helper.SendRequest(() => _request.Get(_generateUrl.Generate("users.get", parameters)));
-
             if (result.json.response != null)
             {
                 dynamic response = result.json.response;
                 dynamic user = response[0];
 
-                string id = user.id;
+                string userId = user.id;
                 string firstName = user.first_name;
                 string lastName = user.last_name;
-                string bdate = user.bdate;
+                string[] bdate = $"{user.bdate}".Split('.');
                 string country = user.country?.title;
                 Gender gender = user.sex == 2 ? Gender.MAN : Gender.WOMAN;
 
-                Account = new Account
+                if (bdate?.Length == 3)
                 {
-                    userId = id,
-                    fullName = $"{firstName} {lastName}",
-                    //Birthday = bdate,
-                    country = country,
-                    gender = gender
-                };
+                    Account.birthday = new DateTime(Convert.ToInt32(bdate[2]), Convert.ToInt32(bdate[1]),
+                        Convert.ToInt32(bdate[0]));
+                }
 
-                return true;
+                Account.userId = userId;
+                Account.fullName = $"{firstName} {lastName}";
+                Account.country = country;
+                Account.gender = gender;
+                Account.status = AccountStatus.VALID;
+
+                return Account;
             }
 
             dynamic error = result.json.error;
-            return false;
+            _handleErrors.HandleErrors("users.get", error, parameters, null);
+            return null;
         }
 
         public bool AddLike(string ownerId, string itemId, ObjectType objectType)
@@ -112,11 +116,11 @@ namespace VkBot.Data.Repositories.Vkcom
             return _handleErrors.HandleErrors("wall.repost", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
         }
 
-        public bool AddFriend(string userId)
+        public bool AddFriend(string username)
         {
             var parameters = new Dictionary<string, string>
             {
-                {"user_id", userId}
+                {"user_id", GetUserIdByUsername(username)}
             };
 
             dynamic SuccessAction(dynamic response) => response == 1;
@@ -131,11 +135,11 @@ namespace VkBot.Data.Repositories.Vkcom
             return _handleErrors.HandleErrors("friends.add", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
         }
 
-        public bool JoinGroup(string groupId)
+        public bool JoinGroup(string username)
         {
             var parameters = new Dictionary<string, string>
             {
-                {"group_id", groupId}
+                {"group_id", GetGroupIdByUsername(username)}
             };
 
             dynamic SuccessAction(dynamic response) => response == 1;

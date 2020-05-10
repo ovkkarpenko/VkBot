@@ -4,6 +4,7 @@ using VkBot.Core.Entities;
 using VkBot.Core.Resources;
 using VkBot.Core.Types;
 using VkBot.Data.Repositories;
+using VkBot.Data.Repositories.Vkcom;
 
 namespace VkBot.Tests
 {
@@ -69,7 +70,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void GetTasksInvalidParametersTest()
+        public void when_paramsAreInvalid_should_returnNull_GetTasksTest()
         {
             //given
             Api api = new Api(BindingKey);
@@ -90,14 +91,10 @@ namespace VkBot.Tests
         {
             //given
             Api api = new Api(BindingKey);
-
-            Account account = new Account();
-            account.id = 1;
-            account.proxy = "123";
-            account.gender = Gender.WOMAN;
-            account.status = AccountStatus.ERROR;
+            Vkcom vkcom = new Vkcom(api.GetAccounts()[0], "");
 
             //when
+            Account account = vkcom.GetCurrentUser();
             bool result = api.SaveAccount(account);
 
             //then
@@ -105,7 +102,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void SaveAccountInvalidParametersTest()
+        public void when_paramsAreInvalid_should_returnNull_SaveAccountTest()
         {
             //given
             Api api = new Api(BindingKey);
@@ -137,7 +134,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void MarkTaskCompletedInvalidParametersTest()
+        public void when_paramsAreInvalid_should_returnNull_MarkTaskCompletedTest()
         {
             //given
             Api api = new Api(BindingKey);
@@ -155,17 +152,17 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void when_bindingKeyIsInvalid_should_returnNullOrFalseTest()
+        public void when_bindingKeyIsInvalid_should_returnNullOrFalse()
         {
             //given
-            Api api = new Api("null");
+            Api api = new Api("123");
 
             //when
             Program program = api.GetProgram();
             Settings settings = api.GetSettings();
             List<Account> accounts = api.GetAccounts();
             List<Task> tasks = api.GetTasks(new FindTasksRequestResource(1, TaskType.LIKE));
-            bool isSaved = api.SaveAccount(new Account(1, "null"));
+            bool isSaved = api.SaveAccount(new Account(1, ""));
             bool isMarked = api.MarkTaskCompleted(new MarkTaskCompletedRequestResource(1, 1));
 
             //then

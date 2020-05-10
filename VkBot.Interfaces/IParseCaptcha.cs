@@ -9,8 +9,8 @@ namespace VkBot.Interfaces
     {
         /**
          * @param captchaImage - bytes of image
-         * @param parameters - will be added captcha parametr with result after recognize captcha 
-         * @param requestFunc - will be called after recognize captcha
+         * @param parameters - will be added captcha parametr with result after solve the captcha 
+         * @param requestFunc - will be called after solve the captcha
          *
          * @return json or html
          */

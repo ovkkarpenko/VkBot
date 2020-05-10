@@ -14,26 +14,26 @@ namespace VkBot
 {
     public class VkBot
     {
-        private const int CountThreeds = 10;
+        private const int CountThreeds = 1;
 
         private readonly Thread[] _threads;
-        private readonly ApiServiceImpl _apiService;
+        private readonly ApiService _api;
 
         private Settings _settings;
         private IEnumerator<Account> _accounts;
 
         public VkBot(string bindingKey)
         {
-            _apiService = new ApiServiceImpl(bindingKey);
+            _api = new ApiServiceImpl(bindingKey);
             _threads = new Thread[CountThreeds];
         }
 
         public void Run()
         {
-            if (_apiService.CheckAuth())
+            if (_api.CheckAuth())
             {
-                _settings = _apiService.GetSettings();
-                _accounts = new Iterator<Account>(_apiService.GetAccounts()).GetItems();
+                _settings = _api.GetSettings();
+                _accounts = new Iterator<Account>(_api.GetAccounts()).GetItems();
 
                 Start();
             }
@@ -74,7 +74,7 @@ namespace VkBot
             {
                 Account account = _accounts.Current;
 
-                SocialNetworkService vkCom = new VkcomServiceImpl(account.token, _settings.rucaptchaKey);
+                SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.rucaptchaKey);
 
                 bool isAuth = vkCom.Auth();
                 if (!isAuth)
@@ -82,40 +82,42 @@ namespace VkBot
                     continue;
                 }
 
+                _api.SaveAccount(vkCom.GetCurrentUser());
+
                 List<Task> friends =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
+                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
 
                 if (friends.Count != 0)
                 {
                     List<Task> tasksDone = vkCom.DoFriends(friends);
-                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                    _api.MarkTasksCompleted(tasksDone, account.id);
                 }
 
                 List<Task> groups =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
+                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
 
                 if (groups.Count != 0)
                 {
                     List<Task> tasksDone = vkCom.DoGroups(groups);
-                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                    _api.MarkTasksCompleted(tasksDone, account.id);
                 }
 
                 List<Task> likes =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
+                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
 
                 if (likes.Count != 0)
                 {
                     List<Task> tasksDone = vkCom.DoLikes(likes);
-                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                    _api.MarkTasksCompleted(tasksDone, account.id);
                 }
 
                 List<Task> reposts =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
+                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
 
                 if (reposts.Count != 0)
                 {
                     List<Task> tasksDone = vkCom.DoReposts(reposts);
-                    _apiService.MarkTasksCompleted(tasksDone, account.id);
+                    _api.MarkTasksCompleted(tasksDone, account.id);
                 }
             }
         }

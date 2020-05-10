@@ -39,7 +39,7 @@ namespace VkBot.Data.Repositories
                 return null;
             }
 
-            dynamic response = result.json[0];
+            dynamic response = result.json;
 
             Program program = new Program();
             program.name = response.name;
@@ -56,7 +56,7 @@ namespace VkBot.Data.Repositories
                 return null;
             }
 
-            dynamic response = result.json[0];
+            dynamic response = result.json;
 
             List<Account> accounts = new List<Account>();
 
@@ -88,7 +88,7 @@ namespace VkBot.Data.Repositories
                 return null;
             }
 
-            dynamic response = result.json[0];
+            dynamic response = result.json;
 
             Settings settings = new Settings();
             settings.proxies = Regex.Split($"{response.proxies}", "\r\n").ToList();
@@ -113,7 +113,7 @@ namespace VkBot.Data.Repositories
                 return null;
             }
 
-            dynamic response = result.json[0];
+            dynamic response = result.json;
 
             List<Task> tasks = new List<Task>();
 

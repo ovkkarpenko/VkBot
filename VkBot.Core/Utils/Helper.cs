@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Leaf.xNet;
 using Newtonsoft.Json.Linq;
 using VkBot.Core.Types;
@@ -15,6 +16,11 @@ namespace VkBot.Core.Utils
                 HttpResponse response = request();
 
                 string content = $"{response}";
+                if (string.IsNullOrEmpty(content))
+                {
+                    return (response, "", "", null);
+                }
+
                 dynamic json = JArray.Parse($"[{response}]")[0];
 
                 return (response, content, json, null);
@@ -22,7 +28,6 @@ namespace VkBot.Core.Utils
             catch (HttpException e)
             {
                 return (null, null, null, e);
-                ;
             }
         }
 
@@ -34,6 +39,47 @@ namespace VkBot.Core.Utils
             }
 
             return Enum.GetName(typeof(ObjectType), objectType).ToLower();
+        }
+
+        public string ParametersToString(Dictionary<string, string> parameters)
+        {
+            string dictionaryString = "{";
+            foreach (KeyValuePair<string, string> keyValues in parameters)
+            {
+                dictionaryString += keyValues.Key + "=" + keyValues.Value + ", ";
+            }
+            return dictionaryString.TrimEnd(',', ' ') + "}";
+        }
+
+        public (string ownerId, string itemId) ParseUrlIntoOwnerAndItem(string url, ObjectType objectType)
+        {
+            string ownerId = "";
+            string itemId = "";
+
+            if (url.IndexOf("?z=") != -1)
+            {
+                ownerId = url.Substring($"?z={GetObjectTypeName(objectType)}", "_");
+                itemId = url.SubstringLast("%2F", "_");
+            }
+            else
+            {
+                ownerId = url.Substring(GetObjectTypeName(objectType), "_");
+                itemId = url.Substring(url.LastIndexOf("_") + 1);
+            }
+
+            return (ownerId, itemId);
+        }
+
+        public string ParseObjectFromUrl(string url)
+        {
+            return url.IndexOf("?z=") != -1
+                ? url.Substring("?z=", "%2F")
+                : url.Substring(url.LastIndexOf("/") + 1);
+        }
+
+        public string ParseUsernameFromUrl(string url)
+        {
+            return url.LastIndexOf("/") != -1 ? url.Substring(url.LastIndexOf("/") + 1) : "";
         }
     }
 }
