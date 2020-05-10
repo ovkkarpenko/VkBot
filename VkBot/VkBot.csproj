@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Leaf.xNet" Version="5.2.6" />
+    <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
@@ -23,6 +24,12 @@
     <Reference Include="VkBot.Logic">
       <HintPath>..\VkBot.Logic\bin\Debug\netcoreapp2.1\VkBot.Logic.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="log4net.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

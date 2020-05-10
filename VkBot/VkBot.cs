@@ -14,21 +14,18 @@ namespace VkBot
 {
     public class VkBot
     {
-        private readonly object _mLock = new object();
-        private const int CountThreeds = 1;
-        private string _bindingKey;
-        private Thread[] _threads;
+        private const int CountThreeds = 10;
+
+        private readonly Thread[] _threads;
+        private readonly ApiServiceImpl _apiService;
+
         private Settings _settings;
         private IEnumerator<Account> _accounts;
-
-        private readonly ApiServiceImpl _apiService;
 
         public VkBot(string bindingKey)
         {
             _apiService = new ApiServiceImpl(bindingKey);
             _threads = new Thread[CountThreeds];
-
-            _bindingKey = bindingKey;
         }
 
         public void Run()
@@ -44,15 +41,18 @@ namespace VkBot
 
         private void Start()
         {
+            object mLock = new object();
+
             for (var i = 0; i < _threads.Length; i++)
             {
                 _threads[i] = new Thread(() =>
                 {
-                    lock (_mLock)
+                    lock (mLock)
                     {
                         Update();
                     }
                 });
+
                 _threads[i].Start();
             }
         }
@@ -83,7 +83,7 @@ namespace VkBot
                 }
 
                 List<Task> friends =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.FRIEND));
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
 
                 if (friends.Count != 0)
                 {
@@ -92,7 +92,7 @@ namespace VkBot
                 }
 
                 List<Task> groups =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.GROUP));
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
 
                 if (groups.Count != 0)
                 {
@@ -101,7 +101,7 @@ namespace VkBot
                 }
 
                 List<Task> likes =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.LIKE));
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
 
                 if (likes.Count != 0)
                 {
@@ -110,7 +110,7 @@ namespace VkBot
                 }
 
                 List<Task> reposts =
-                    _apiService.GetTasks(new FindTasksRequestResource(account.id, _bindingKey, TaskType.REPOST));
+                    _apiService.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
 
                 if (reposts.Count != 0)
                 {

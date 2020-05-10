@@ -15,5 +15,30 @@ namespace VkBot.Core.Entities
         public DateTime birthday { get; set; }
         public Gender gender { get; set; }
         public AccountStatus status { get; set; }
+
+        public Account()
+        {
+        }
+
+        public Account(int id, string token)
+        {
+            this.id = id;
+            this.token = token;
+        }
+
+        public Account(int id, string token, string userAgent, string proxy)
+        {
+            this.id = id;
+            this.token = token;
+            this.userAgent = userAgent;
+            this.proxy = proxy;
+        }
+
+        public override string ToString()
+        {
+            return $"Account(" +
+                   $"token='{token}', " +
+                   $"userId='{userId}')";
+        }
     }
 }

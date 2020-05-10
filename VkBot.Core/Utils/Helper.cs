@@ -7,14 +7,23 @@ namespace VkBot.Core.Utils
 {
     public class Helper
     {
-        public (HttpResponse response, string content, dynamic json) SendRequest(Func<HttpResponse> request)
+        public (HttpResponse response, string content, dynamic json, HttpException httpException) SendRequest(
+            Func<HttpResponse> request)
         {
-            HttpResponse response = request();
+            try
+            {
+                HttpResponse response = request();
 
-            string content = $"{response}";
-            dynamic json = JArray.Parse($"[{response}]");
+                string content = $"{response}";
+                dynamic json = JArray.Parse($"[{response}]")[0];
 
-            return (response, content, json);
+                return (response, content, json, null);
+            }
+            catch (HttpException e)
+            {
+                return (null, null, null, e);
+                ;
+            }
         }
 
         public string GetObjectTypeName(ObjectType objectType)

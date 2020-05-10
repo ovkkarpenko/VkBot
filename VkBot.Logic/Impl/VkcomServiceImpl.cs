@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Leaf.xNet;
 using VkBot.Core.Entities;
-using VkBot.Core.Types;
 using VkBot.Core.Utils;
-using VkBot.Data.Repositories;
+using VkBot.Data.Repositories.Vkcom;
 using VkBot.Interfaces;
+
+[assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config")]
 
 namespace VkBot.Logic.Impl
 {
@@ -13,6 +13,9 @@ namespace VkBot.Logic.Impl
     {
         private readonly Vkcom _vkcom;
         private readonly Helper _helper;
+
+        private static readonly log4net.ILog _log =
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public VkcomServiceImpl(string token, string rucaptchaKey)
         {
@@ -54,6 +57,7 @@ namespace VkBot.Logic.Impl
                 }
             }
 
+            _log.Info($"IN DoLikes - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 
@@ -75,6 +79,7 @@ namespace VkBot.Logic.Impl
                 }
             }
 
+            _log.Info($"IN DoReposts - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 
@@ -95,6 +100,7 @@ namespace VkBot.Logic.Impl
                 }
             }
 
+            _log.Info($"IN DoFriends - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 
@@ -115,6 +121,7 @@ namespace VkBot.Logic.Impl
                 }
             }
 
+            _log.Info($"IN DoGroups - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
     }

@@ -33,7 +33,12 @@ namespace VkBot.Data.Repositories
 
         public Program GetProgram()
         {
-            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/{_bindingKey}")));
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program")));
+            if (result.httpException != null)
+            {
+                return null;
+            }
+
             dynamic response = result.json[0];
 
             Program program = new Program();
@@ -45,7 +50,12 @@ namespace VkBot.Data.Repositories
 
         public List<Account> GetAccounts()
         {
-            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/account/{_bindingKey}")));
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/account")));
+            if (result.httpException != null)
+            {
+                return null;
+            }
+
             dynamic response = result.json[0];
 
             List<Account> accounts = new List<Account>();
@@ -72,7 +82,12 @@ namespace VkBot.Data.Repositories
 
         public Settings GetSettings()
         {
-            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/settings/{_bindingKey}")));
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/settings")));
+            if (result.httpException != null)
+            {
+                return null;
+            }
+
             dynamic response = result.json[0];
 
             Settings settings = new Settings();
@@ -93,6 +108,11 @@ namespace VkBot.Data.Repositories
         {
             dynamic json = JsonConvert.SerializeObject(requestResource);
             var result = _helper.SendRequest(() => _request.Post(GenerateUrl($"program/task"), json, "application/json"));
+            if (result.httpException != null)
+            {
+                return null;
+            }
+
             dynamic response = result.json[0];
 
             List<Task> tasks = new List<Task>();
@@ -116,6 +136,11 @@ namespace VkBot.Data.Repositories
         {
             dynamic json = JsonConvert.SerializeObject(account);
             var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"program/account"), json, "application/json"));
+            if (result.httpException != null)
+            {
+                return false;
+            }
+
             return true;
         }
 
@@ -123,12 +148,17 @@ namespace VkBot.Data.Repositories
         {
             dynamic json = JsonConvert.SerializeObject(requestResource);
             var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"program/task/completed"), json, "application/json"));
+            if (result.httpException != null)
+            {
+                return false;
+            }
+
             return true;
         }
 
         private string GenerateUrl(string method, Dictionary<string, string> parameters = null)
         {
-            string url = $"{Host}/{method}?" +
+            string url = $"{Host}/{method}/{_bindingKey}?" +
                          $"{(parameters != null ? "&" + string.Join("&", parameters.Select(pair => $"{pair.Key}={pair.Value}")) : "")}";
 
             return url;

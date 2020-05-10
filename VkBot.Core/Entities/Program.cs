@@ -8,5 +8,12 @@ namespace VkBot.Core.Entities
     {
         public string name { get; set; }
         public string bindingKey { get; set; }
+
+        public override string ToString()
+        {
+            return $"Program(" +
+                   $"name='{name}', " +
+                   $"bindingKey='{bindingKey}')";
+        }
     }
 }

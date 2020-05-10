@@ -1,6 +1,8 @@
+using System.Net.NetworkInformation;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using VkBot.Core.Types;
 using VkBot.Data.Repositories;
+using VkBot.Data.Repositories.Vkcom;
 
 namespace VkBot.Tests
 {
@@ -32,7 +34,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void AddLikeTest()
+        public void AddLikeAndIsLikedTest()
         {
             //given
             Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
@@ -45,7 +47,7 @@ namespace VkBot.Tests
             vkcom.AddLike(ownerId, itemId, ObjectType.POST);
 
             //then
-            bool isLiked = vkcom.IsLiked(ownerId, itemId);
+            bool isLiked = vkcom.IsLiked(ownerId, itemId, ObjectType.POST);
             Assert.IsTrue(isLiked, "Failed to like");
         }
 
@@ -66,7 +68,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void AddFriendTest()
+        public void AddFriendAndIsFriendTest()
         {
             //given
             Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
@@ -78,12 +80,12 @@ namespace VkBot.Tests
             vkcom.AddFriend(userId);
 
             //then
-            bool isMember = vkcom.IsFriend(userId);
-            Assert.IsTrue(isMember, "Failed to add friend");
+            bool isFriend = vkcom.IsFriend(userId);
+            Assert.IsTrue(isFriend, "Failed to add friend");
         }
 
         [TestMethod]
-        public void JoinGroupTest()
+        public void JoinGroupAndIsMemberTest()
         {
             //given
             Vkcom vkcom = new Vkcom(Token, RucaptchaKey);
@@ -131,6 +133,19 @@ namespace VkBot.Tests
 
             //then
             Assert.AreEqual(groupId, expected);
+        }
+
+        [TestMethod]
+        public void when_tokenIsInvalid_should_returnNullOrFalseTest()
+        {
+            //given
+            Vkcom vkcom = new Vkcom("123", RucaptchaKey);
+
+            //when
+            vkcom.AddLike("", "", ObjectType.PHOTO);
+
+            //then
+
         }
     }
 }
