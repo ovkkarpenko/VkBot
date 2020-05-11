@@ -1,18 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using VkBot.Core.Entities;
 using VkBot.Core.Resources;
 using VkBot.Core.Types;
 using VkBot.Data.Repositories;
 using VkBot.Interfaces;
 
-namespace VkBot.Logic.Impl
+namespace VkBot.Logic.Services
 {
     public class ApiServiceImpl : ApiService
     {
         private readonly Api _api;
 
-        private static readonly log4net.ILog _log =
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public ApiServiceImpl(string bindingKey)
         {
@@ -43,7 +45,8 @@ namespace VkBot.Logic.Impl
         public List<Task> GetTasks(FindTasksRequestResource requestResource)
         {
             List<Task> tasks = _api.GetTasks(requestResource);
-            _log.Info($"IN GetTasks - {tasks.Count} tasks loaded");
+            _log.Info(
+                $"IN GetTasks - {tasks.Count} tasks loaded by taskType: : {Enum.GetName(typeof(TaskType), requestResource.taskType).ToLower()}");
             return tasks;
         }
 

@@ -23,12 +23,12 @@ namespace VkBot.Data.Repositories.Vkcom
         {
             _helper = new Helper();
             _request = new HttpRequest();
-            _generateUrl = new VkcomGenerateUrl("https://api.vk.com/method", account.token);
+            _generateUrl = new VkcomGenerateUrl(account.token);
 
             Account = account;
             _request.UserAgentRandomize();
 
-            _handleErrors = new VkcomHandleErrors(_helper, _request, _generateUrl, new VkcomParseCaptcha(rucaptchaKey));
+            _handleErrors = new VkcomHandleErrors(_helper, _request, _generateUrl, new VkcomParseCaptcha(rucaptchaKey), Account.id);
         }
 
         ~Vkcom()
@@ -72,7 +72,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            _handleErrors.HandleErrors("users.get", error, parameters, null);
+            _handleErrors.Handle("users.get", error, parameters, null);
             return null;
         }
 
@@ -94,7 +94,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("likes.add", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
+            return _handleErrors.Handle("likes.add", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
         }
 
         public bool AddRepost(string @object)
@@ -113,14 +113,14 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("wall.repost", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
+            return _handleErrors.Handle("wall.repost", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
         }
 
-        public bool AddFriend(string username)
+        public bool AddFriend(string userId)
         {
             var parameters = new Dictionary<string, string>
             {
-                {"user_id", GetUserIdByUsername(username)}
+                {"user_id", userId}
             };
 
             dynamic SuccessAction(dynamic response) => response == 1;
@@ -132,7 +132,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("friends.add", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
+            return _handleErrors.Handle("friends.add", error, parameters, (Func<dynamic, dynamic>) SuccessAction);
         }
 
         public bool JoinGroup(string username)
@@ -151,7 +151,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("groups.join", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
+            return _handleErrors.Handle("groups.join", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
         }
 
         public bool IsLiked(string ownerId, string itemId, ObjectType objectType)
@@ -173,7 +173,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("likes.isLiked", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
+            return _handleErrors.Handle("likes.isLiked", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
         }
 
         public bool IsMember(string groupdId)
@@ -194,7 +194,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("groups.isMember", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
+            return _handleErrors.Handle("groups.isMember", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
         }
 
         public bool IsFriend(string userId)
@@ -213,7 +213,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("friends.areFriends", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
+            return _handleErrors.Handle("friends.areFriends", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
         }
 
         public string GetUserIdByUsername(string username)
@@ -232,7 +232,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("users.get", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
+            return _handleErrors.Handle("users.get", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
         }
 
         public string GetGroupIdByUsername(string username)
@@ -251,7 +251,7 @@ namespace VkBot.Data.Repositories.Vkcom
             }
 
             dynamic error = result.json.error;
-            return _handleErrors.HandleErrors("groups.getById", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
+            return _handleErrors.Handle("groups.getById", error, parameters, (Func<dynamic, dynamic>)SuccessAction);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Leaf.xNet;
+using VkBot.Core.Entities;
 using VkBot.Core.Exceptions;
 using VkBot.Core.Utils;
 using VkBot.Interfaces;
@@ -16,12 +17,15 @@ namespace VkBot.Data.Repositories.Vkcom
         private readonly IGenerateUrl _generateUrl;
         private readonly IParseCaptcha _parseCaptcha;
 
-        public VkcomHandleErrors(Helper helper, HttpRequest request, IGenerateUrl generateUrl, IParseCaptcha parseCaptcha)
+        private readonly int _accountId;
+
+        public VkcomHandleErrors(Helper helper, HttpRequest request, IGenerateUrl generateUrl, IParseCaptcha parseCaptcha, int accountId)
         {
             _helper = helper;
             _request = request;
             _generateUrl = generateUrl;
             _parseCaptcha = parseCaptcha;
+            _accountId = accountId;
         }
 
         ~VkcomHandleErrors()
@@ -29,18 +33,18 @@ namespace VkBot.Data.Repositories.Vkcom
             _request.Dispose();
         }
 
-        public dynamic HandleErrors(string urlMethod, dynamic error, Dictionary<string, string> parameters,
+        public dynamic Handle(string urlMethod, dynamic error, Dictionary<string, string> parameters,
             Func<dynamic, dynamic> successAction)
         {
             string errorCode = error.error_code;
 
             if (errorCode == "5")
             {
-                throw new AuthorizationException("Authorization error: " + error.error_msg);
+                throw new AuthorizationException($"accountId: {_accountId}, error_message: {error.error_msg}");
             }
             if (errorCode == "100")
             {
-                throw new ArgumentException("Parameters: " + _helper.ParametersToString(parameters));
+                throw new ArgumentException(_helper.ParametersToString(parameters));
             }
             if (errorCode == "14")
             {
@@ -61,7 +65,7 @@ namespace VkBot.Data.Repositories.Vkcom
                     return successAction != null ? successAction(json.response) : null;
                 }
 
-                throw new CaptchaException("Could not solve the captcha, error: " + json?.error.error_msg);
+                throw new CaptchaException($"{json?.error.error_msg}");
             }
 
             return null;

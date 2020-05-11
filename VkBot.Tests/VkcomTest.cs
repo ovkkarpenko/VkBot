@@ -10,9 +10,9 @@ namespace VkBot.Tests
     [TestClass]
     public class VkcomTest
     {
-        //https://oGetCurrentUser.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH&username=380996476978&password=qweasfwqe123SD
+        //https://oauth.vk.com/token?grant_type=password&client_id=2274003&client_secret=hHbZxrka2uZ6jB1inYsH&username=380996476978&password=qweasfwqe123SD
 
-        private const string Token = "84c25c9bea3d8c71e2c6b9000ab6747622a51294b9c5035cae375a7b2def2039a297ab62e4b6db3d9d979";
+        private const string Token = "abf0120b0634484286fa020ea27fe1b5ff394467bd65ab75caabcaf1c40d8b1103076bf1341f5dcb7bbc0";
         private const string RucaptchaKey = "013dcdca04747d528e9518692380b3ad";
 
         [TestInitialize]
@@ -121,7 +121,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void when_paramsAreInvalid_should_throwException_AddFriendAndIsFriendTest()
+        public void when_paramsAreInvalid_should_throwException_AddFriendTest()
         {
             //given
             Vkcom vkcom = new Vkcom(new Account(Token), RucaptchaKey);
@@ -131,11 +131,9 @@ namespace VkBot.Tests
             //when
             vkcom.GetCurrentUser();
             Action addFriend = () => vkcom.AddFriend(userId);
-            Action isFriend = () => vkcom.IsFriend(userId);
 
             //then
             Assert.ThrowsException<ArgumentException>(addFriend);
-            Assert.ThrowsException<ArgumentException>(isFriend);
         }
 
         [TestMethod]
@@ -206,7 +204,7 @@ namespace VkBot.Tests
         }
 
         [TestMethod]
-        public void when_tokenIsInvalid_should_returnNullOrFalse()
+        public void when_tokenIsInvalid_should_ThrowAuthorizationException_AllMethodTest()
         {
             //given
             Vkcom vkcom = new Vkcom(new Account("123"), RucaptchaKey);

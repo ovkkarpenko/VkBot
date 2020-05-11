@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
+using log4net;
 using VkBot.Core.Entities;
+using VkBot.Core.Exceptions;
 using VkBot.Core.Resources;
 using VkBot.Core.Types;
 using VkBot.Core.Utils;
 using VkBot.Data.Repositories;
 using VkBot.Interfaces;
-using VkBot.Logic.Impl;
+using VkBot.Logic.Services;
 
 namespace VkBot
 {
@@ -21,6 +24,8 @@ namespace VkBot
 
         private Settings _settings;
         private IEnumerator<Account> _accounts;
+
+        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public VkBot(string bindingKey)
         {
@@ -72,53 +77,63 @@ namespace VkBot
         {
             while (_accounts.MoveNext() && _accounts.Current != null)
             {
-                Account account = _accounts.Current;
-
-                SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.rucaptchaKey);
-
-                bool isAuth = vkCom.Auth();
-                if (!isAuth)
+                try
                 {
-                    continue;
+                    Account account = _accounts.Current;
+                    SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.rucaptchaKey);
+
+                    vkCom.Auth();
+                    _api.SaveAccount(vkCom.GetCurrentUser());
+
+                    DoTasks(vkCom, account);
                 }
-
-                _api.SaveAccount(vkCom.GetCurrentUser());
-
-                List<Task> friends =
-                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
-
-                if (friends.Count != 0)
+                catch (AuthorizationException e)
                 {
-                    List<Task> tasksDone = vkCom.DoFriends(friends);
-                    _api.MarkTasksCompleted(tasksDone, account.id);
+                    _log.Error($"IN Update - Authorisation error, info: {e.Message}");
                 }
-
-                List<Task> groups =
-                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
-
-                if (groups.Count != 0)
+                catch (Exception e)
                 {
-                    List<Task> tasksDone = vkCom.DoGroups(groups);
-                    _api.MarkTasksCompleted(tasksDone, account.id);
+                    _log.Error($"IN Update - Not expected error, info: {e.Message}");
                 }
+            }
+        }
 
-                List<Task> likes =
-                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
+        private void DoTasks(SocialNetworkService vkCom, Account account)
+        {
+            List<Task> friends =
+                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
 
-                if (likes.Count != 0)
-                {
-                    List<Task> tasksDone = vkCom.DoLikes(likes);
-                    _api.MarkTasksCompleted(tasksDone, account.id);
-                }
+            if (friends.Count != 0)
+            {
+                List<Task> tasksDone = vkCom.DoFriends(friends);
+                _api.MarkTasksCompleted(tasksDone, account.id);
+            }
 
-                List<Task> reposts =
-                    _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
+            List<Task> groups =
+                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
 
-                if (reposts.Count != 0)
-                {
-                    List<Task> tasksDone = vkCom.DoReposts(reposts);
-                    _api.MarkTasksCompleted(tasksDone, account.id);
-                }
+            if (groups.Count != 0)
+            {
+                List<Task> tasksDone = vkCom.DoGroups(groups);
+                _api.MarkTasksCompleted(tasksDone, account.id);
+            }
+
+            List<Task> likes =
+                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
+
+            if (likes.Count != 0)
+            {
+                List<Task> tasksDone = vkCom.DoLikes(likes);
+                _api.MarkTasksCompleted(tasksDone, account.id);
+            }
+
+            List<Task> reposts =
+                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
+
+            if (reposts.Count != 0)
+            {
+                List<Task> tasksDone = vkCom.DoReposts(reposts);
+                _api.MarkTasksCompleted(tasksDone, account.id);
             }
         }
     }
