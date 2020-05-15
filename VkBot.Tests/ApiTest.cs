@@ -11,7 +11,7 @@ namespace VkBot.Tests
     [TestClass]
     public class ApiTest
     {
-        private const string BindingKey = "12345";
+        private const string BindingKey = "JX659UlS3ZfjB1GaCauFUJJz5Vz2W8mthIQ0WUmABRG1j5esEaGQfUzLE4rfv8VTbnLzO9AadeJu31rFuQXm8wd8AAqutznvHDwA";
 
         [TestMethod]
         public void GetProgramTest()
@@ -91,7 +91,8 @@ namespace VkBot.Tests
         {
             //given
             Api api = new Api(BindingKey);
-            Vkcom vkcom = new Vkcom(api.GetAccounts()[0], "");
+            Account loadedAccount = api.GetAccounts()[0];
+            Vkcom vkcom = new Vkcom(loadedAccount, "");
 
             //when
             Account account = vkcom.GetCurrentUser();

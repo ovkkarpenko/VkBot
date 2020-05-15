@@ -1,14 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
-using log4net;
 using VkBot.Core.Entities;
 using VkBot.Core.Utils;
 using VkBot.Data.Repositories.Vkcom;
 using VkBot.Interfaces;
 
-[assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config")]
-
-namespace VkBot.Logic.Services
+namespace VkBot.Logic.Impl
 {
     public class VkcomServiceImpl : SocialNetworkService
     {
@@ -16,9 +12,7 @@ namespace VkBot.Logic.Services
         private readonly Helper _helper;
 
         private readonly IHandleExceptions _handleExceptions;
-
-        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         public VkcomServiceImpl(Account account, string rucaptchaKey)
         {
             _helper = new Helper();
@@ -28,7 +22,16 @@ namespace VkBot.Logic.Services
 
         public bool Auth()
         {
-            return _vkcom.GetCurrentUser() != null;
+            Account account = _vkcom.GetCurrentUser();
+
+            if(account == null)
+            {
+                Helper.Log.Info($"IN Auth - no account loaded");
+                return false;
+            }
+
+            Helper.Log.Info($"IN Auth - {account} account loaded");
+            return  true;
         }
 
         public List<Task> DoLikes(List<Task> tasks)
@@ -49,7 +52,7 @@ namespace VkBot.Logic.Services
                 });
             }
 
-            _log.Info($"IN DoLikes - {tasksDone.Count} tasks completed from {tasks.Count}");
+            Helper.Log.Info($"IN DoLikes - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 
@@ -71,7 +74,7 @@ namespace VkBot.Logic.Services
                 });
             }
 
-            _log.Info($"IN DoReposts - {tasksDone.Count} tasks completed from {tasks.Count}");
+            Helper.Log.Info($"IN DoReposts - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 
@@ -94,7 +97,7 @@ namespace VkBot.Logic.Services
                 });
             }
 
-            _log.Info($"IN DoFriends - {tasksDone.Count} tasks completed from {tasks.Count}");
+            Helper.Log.Info($"IN DoFriends - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 
@@ -116,7 +119,7 @@ namespace VkBot.Logic.Services
                 });
             }
 
-            _log.Info($"IN DoGroups - {tasksDone.Count} tasks completed from {tasks.Count}");
+            Helper.Log.Info($"IN DoGroups - {tasksDone.Count} tasks completed from {tasks.Count}");
             return tasksDone;
         }
 

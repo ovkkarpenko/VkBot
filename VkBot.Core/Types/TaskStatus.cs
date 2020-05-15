@@ -6,6 +6,6 @@ namespace VkBot.Core.Types
 {
     public enum TaskStatus
     {
-        ACTIVE, PAUSE, STOP, ERROR, DONE
+        ACTIVE, STOPPED, DELETED, ERROR
     }
 }

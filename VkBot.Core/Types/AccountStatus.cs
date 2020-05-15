@@ -6,6 +6,6 @@ namespace VkBot.Core.Types
 {
     public enum AccountStatus
     {
-        VALID, INVALID, ERROR, NONE
+        VALID, INVALID, NEED_VALIDATION, ERROR, DELETED, NONE
     }
 }

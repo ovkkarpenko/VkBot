@@ -42,6 +42,10 @@ namespace VkBot.Data.Repositories.Vkcom
             {
                 throw new AuthorizationException($"accountId: {_accountId}, error_message: {error.error_msg}");
             }
+            if (errorCode == "17")
+            {
+                throw new NeedValidationException($"accountId: {_accountId}, error_message: {error.error_msg}");
+            }
             if (errorCode == "100")
             {
                 throw new ArgumentException(_helper.ParametersToString(parameters));

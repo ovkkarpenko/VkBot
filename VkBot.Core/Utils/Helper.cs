@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using Leaf.xNet;
 using Newtonsoft.Json.Linq;
 using VkBot.Core.Types;
+using log4net;
+using System.Reflection;
+
+[assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config")]
 
 namespace VkBot.Core.Utils
 {
     public class Helper
     {
+        public static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public (HttpResponse response, string content, dynamic json, HttpException httpException) SendRequest(
             Func<HttpResponse> request)
         {

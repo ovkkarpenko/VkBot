@@ -11,22 +11,20 @@ using VkBot.Core.Types;
 using VkBot.Core.Utils;
 using VkBot.Data.Repositories;
 using VkBot.Interfaces;
-using VkBot.Logic.Services;
+using VkBot.Logic.Impl;
 
 namespace VkBot
 {
     public class VkBot
     {
-        private const int CountThreeds = 1;
+        private const int CountThreeds = 5;
 
         private readonly Thread[] _threads;
         private readonly ApiService _api;
 
         private Settings _settings;
         private IEnumerator<Account> _accounts;
-
-        private readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        
         public VkBot(string bindingKey)
         {
             _api = new ApiServiceImpl(bindingKey);
@@ -77,23 +75,37 @@ namespace VkBot
         {
             while (_accounts.MoveNext() && _accounts.Current != null)
             {
+                Account account = _accounts.Current;
+                SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.rucaptchaKey);
+
                 try
                 {
-                    Account account = _accounts.Current;
-                    SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.rucaptchaKey);
-
-                    vkCom.Auth();
-                    _api.SaveAccount(vkCom.GetCurrentUser());
-
-                    DoTasks(vkCom, account);
+                    if (vkCom.Auth())
+                    {
+                        _api.SaveAccount(vkCom.GetCurrentUser());
+                        DoTasks(vkCom, account);
+                    }
                 }
                 catch (AuthorizationException e)
                 {
-                    _log.Error($"IN Update - Authorisation error, info: {e.Message}");
+                    Helper.Log.Error($"IN Update - Authorisation error, info: {e.Message}");
+
+                    account.status = AccountStatus.INVALID;
+                    _api.SaveAccount(account);
+                }
+                catch (NeedValidationException e)
+                {
+                    Helper.Log.Error($"IN Update - NeedValidation error, info: {e.Message}");
+
+                    account.status = AccountStatus.NEED_VALIDATION;
+                    _api.SaveAccount(account);
                 }
                 catch (Exception e)
                 {
-                    _log.Error($"IN Update - Not expected error, info: {e.Message}");
+                    Helper.Log.Error($"IN Update - Not expected error, info: {e.Message}");
+
+                    account.status = AccountStatus.ERROR;
+                    _api.SaveAccount(account);
                 }
             }
         }

@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Impl\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

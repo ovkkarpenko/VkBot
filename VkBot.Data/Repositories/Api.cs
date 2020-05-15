@@ -33,7 +33,7 @@ namespace VkBot.Data.Repositories
 
         public Program GetProgram()
         {
-            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program")));
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"client_program")));
             if (result.httpException != null)
             {
                 return null;
@@ -50,7 +50,7 @@ namespace VkBot.Data.Repositories
 
         public List<Account> GetAccounts()
         {
-            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/account")));
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"client_program/account")));
             if (result.httpException != null)
             {
                 return null;
@@ -62,17 +62,20 @@ namespace VkBot.Data.Repositories
 
             foreach (dynamic item in response)
             {
-                Account account = new Account();
-                account.id = item.id;
-                account.userId = item.userId;
-                account.token = item.token;
-                account.fullName = item.fullName;
-                account.country = item.country;
-                account.userAgent = item.userAgent;
-                account.proxy = item.proxy;
-                //account.Birthday = item.birthday;
+                var account = new Account
+                {
+                    id = item.id,
+                    userId = item.userId,
+                    token = item.token,
+                    fullName = item.fullName,
+                    //birthday = item.birthday;
+                    country = item.country,
+                    userAgent = item.userAgent,
+                    proxy = item.proxy
+                };
+
                 if (item.gender != null) account.gender = item.gender;
-                account.status = item.status;
+                account.status = item?.status;
 
                 accounts.Add(account);
             }
@@ -82,7 +85,7 @@ namespace VkBot.Data.Repositories
 
         public Settings GetSettings()
         {
-            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"program/settings")));
+            var result = _helper.SendRequest(() => _request.Get(GenerateUrl($"client_program/settings")));
             if (result.httpException != null)
             {
                 return null;
@@ -92,9 +95,9 @@ namespace VkBot.Data.Repositories
 
             Settings settings = new Settings();
             settings.proxies = Regex.Split($"{response.proxies}", "\r\n").ToList();
-            settings.userAgents = Regex.Split($"{response.userAgents}", "\r\n").ToList();
+            settings.useragents = Regex.Split($"{response.useragents}", "\r\n").ToList();
             settings.rucaptchaKey = response.rucaptchaKey;
-            settings.timeoutLikes = response.timeoutLikes;
+            settings.timeoutLike = response.timeoutLike;
             settings.timeoutFriend = response.timeoutFriend;
             settings.timeoutRepost = response.timeoutRepost;
             settings.timeoutGroup = response.timeoutGroup;
@@ -107,7 +110,7 @@ namespace VkBot.Data.Repositories
         public List<Task> GetTasks(FindTasksRequestResource requestResource)
         {
             dynamic json = JsonConvert.SerializeObject(requestResource);
-            var result = _helper.SendRequest(() => _request.Post(GenerateUrl($"program/task"), json, "application/json"));
+            var result = _helper.SendRequest(() => _request.Post(GenerateUrl($"client_program/task"), json, "application/json"));
             if (result.httpException != null)
             {
                 return null;
@@ -121,9 +124,12 @@ namespace VkBot.Data.Repositories
             {
                 Task task = new Task();
                 task.id = item.id;
+                task.name = item.name;
                 task.url = item.url;
                 task.count = item.count;
+                task.statsCompleted = item.statsCompleted;
                 task.status = item.status;
+                task.taskType = item.taskType;
                 task.objectType = item.objectType;
 
                 tasks.Add(task);
@@ -135,7 +141,7 @@ namespace VkBot.Data.Repositories
         public bool SaveAccount(Account account)
         {
             dynamic json = JsonConvert.SerializeObject(account);
-            var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"program/account"), json, "application/json"));
+            var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"client_program/account"), json, "application/json"));
             if (result.httpException != null)
             {
                 return false;
@@ -147,7 +153,7 @@ namespace VkBot.Data.Repositories
         public bool MarkTaskCompleted(MarkTaskCompletedRequestResource requestResource)
         {
             dynamic json = JsonConvert.SerializeObject(requestResource);
-            var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"program/task/completed"), json, "application/json"));
+            var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"client_program/task/completed"), json, "application/json"));
             if (result.httpException != null)
             {
                 return false;
