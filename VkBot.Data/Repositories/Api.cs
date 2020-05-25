@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Leaf.xNet;
@@ -22,13 +23,13 @@ namespace VkBot.Data.Repositories
             _helper = new Helper();
             _request = new HttpRequest();
 
+            _request.ReconnectDelay = 30000;
+            _request.ReconnectLimit = 10;
+            _request.ConnectTimeout = 60000;
+            _request.KeepAliveTimeout = 60000;
+            _request.ReadWriteTimeout = 60000;
             _request.UserAgentRandomize();
             _bindingKey = bindingKey;
-        }
-
-        ~Api()
-        {
-            _request.Dispose();
         }
 
         public Program GetProgram()
@@ -94,8 +95,8 @@ namespace VkBot.Data.Repositories
             dynamic response = result.json;
 
             Settings settings = new Settings();
-            settings.proxies = Regex.Split($"{response.proxies}", "\r\n").ToList();
-            settings.useragents = Regex.Split($"{response.useragents}", "\r\n").ToList();
+            settings.proxies = Regex.Split($"{response.proxies}", "\n").ToList();
+            settings.useragents = Regex.Split($"{response.useragents}", "\n").ToList();
             settings.rucaptchaKey = response.rucaptchaKey;
             settings.timeoutLike = response.timeoutLike;
             settings.timeoutFriend = response.timeoutFriend;
@@ -113,7 +114,7 @@ namespace VkBot.Data.Repositories
             var result = _helper.SendRequest(() => _request.Post(GenerateUrl($"client_program/task"), json, "application/json"));
             if (result.httpException != null)
             {
-                return null;
+                return new List<Task>();
             }
 
             dynamic response = result.json;
@@ -142,6 +143,20 @@ namespace VkBot.Data.Repositories
         {
             dynamic json = JsonConvert.SerializeObject(account);
             var result = _helper.SendRequest(() => _request.Put(GenerateUrl($"client_program/account"), json, "application/json"));
+            if (result.httpException != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool AddLogs(LogsRequestResource requestResource)
+        {
+            requestResource.message = $"[{DateTime.UtcNow:yyyy-MM-ddTHH\\:mm\\:ss}]: {requestResource.message}";
+
+            dynamic json = JsonConvert.SerializeObject(requestResource);
+            var result = _helper.SendRequest(() => _request.Post(GenerateUrl($"client_program/logs"), json, "application/json"));
             if (result.httpException != null)
             {
                 return false;

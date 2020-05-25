@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using VkBot.Core.Entities;
 using VkBot.Core.Resources;
+using VkBot.Core.Types;
 
 namespace VkBot.Interfaces
 {
@@ -12,9 +13,13 @@ namespace VkBot.Interfaces
 
         Settings GetSettings();
 
+        ProgramStatus GetProgramStatus();
+
         List<Task> GetTasks(FindTasksRequestResource requestResource);
 
         void SaveAccount(Account account);
+
+        void AddLogs(LogsRequestResource requestResource);
 
         void MarkTasksCompleted(List<Task> tasks, int accountId);
     }

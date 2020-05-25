@@ -28,7 +28,6 @@ namespace VkBot.Core.Utils
                 }
 
                 dynamic json = JArray.Parse($"[{response}]")[0];
-
                 return (response, content, json, null);
             }
             catch (HttpException e)
@@ -86,6 +85,24 @@ namespace VkBot.Core.Utils
         public string ParseUsernameFromUrl(string url)
         {
             return url.LastIndexOf("/") != -1 ? url.Substring(url.LastIndexOf("/") + 1) : "";
+        }
+
+        public ProxyClient ParseProxy(string proxy, ProxyType proxyType)
+        {
+            if (proxyType == ProxyType.HTTP)
+            {
+                return HttpProxyClient.Parse(proxy);
+            }
+            else if (proxyType == ProxyType.Socks4)
+            {
+                return Socks4ProxyClient.Parse(proxy);
+            }
+            else if (proxyType == ProxyType.Socks5)
+            {
+                return Socks5ProxyClient.Parse(proxy);
+            }
+
+            return null;
         }
     }
 }

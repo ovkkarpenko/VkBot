@@ -19,14 +19,25 @@ namespace VkBot.Data.Repositories.Vkcom
 
         public Account Account { get; private set; }
 
-        public Vkcom(Account account, string rucaptchaKey)
+        public Vkcom(Account account, ProxyType proxyType, string rucaptchaKey)
         {
             _helper = new Helper();
             _request = new HttpRequest();
             _generateUrl = new VkcomGenerateUrl(account.token);
 
             Account = account;
-            _request.UserAgentRandomize();
+
+            if (!string.IsNullOrEmpty(account.proxy))
+            {
+                _request.Proxy = _helper.ParseProxy(account.proxy, proxyType);
+            }
+
+            _request.ReconnectDelay = 30000;
+            _request.ReconnectLimit = 10;
+            _request.ConnectTimeout = 60000;
+            _request.KeepAliveTimeout = 60000;
+            _request.ReadWriteTimeout = 60000;
+            _request.UserAgent = string.IsNullOrEmpty(account.userAgent) ? Http.RandomUserAgent() : account.userAgent;
 
             _handleErrors = new VkcomHandleErrors(_helper, _request, _generateUrl, new VkcomParseCaptcha(rucaptchaKey), Account.id);
         }

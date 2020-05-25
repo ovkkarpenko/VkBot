@@ -1,151 +1,195 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
-using log4net;
+using System.Threading.Tasks;
 using VkBot.Core.Entities;
 using VkBot.Core.Exceptions;
 using VkBot.Core.Resources;
 using VkBot.Core.Types;
 using VkBot.Core.Utils;
-using VkBot.Data.Repositories;
 using VkBot.Interfaces;
 using VkBot.Logic.Impl;
+using Task = VkBot.Core.Entities.Task;
 
 namespace VkBot
 {
     public class VkBot
     {
-        private const int CountThreeds = 5;
+        private int _activeThreads;
+        private ProgramStatus _programStatus;
 
-        private readonly Thread[] _threads;
-        private readonly ApiService _api;
+        private readonly string _bindingKey;
+
+        private Thread[] _threads;
 
         private Settings _settings;
-        private IEnumerator<Account> _accounts;
+        private List<Account> _accounts;
         
         public VkBot(string bindingKey)
         {
-            _api = new ApiServiceImpl(bindingKey);
-            _threads = new Thread[CountThreeds];
+            _bindingKey = bindingKey;
         }
 
         public void Run()
         {
-            if (_api.CheckAuth())
-            {
-                _settings = _api.GetSettings();
-                _accounts = new Iterator<Account>(_api.GetAccounts()).GetItems();
+            ApiService api = new ApiServiceImpl(_bindingKey);
 
-                Start();
+            if (api.CheckAuth())
+            {
+                _settings = api.GetSettings();
+                _accounts = api.GetAccounts();
+
+                new Thread(() =>
+                {
+                    while (true)
+                    {
+                        _programStatus = api.GetProgramStatus();
+                        Thread.Sleep(10000);
+                    }
+                }).Start();
+
+                while (true)
+                {
+                    Start();
+
+                    while (_activeThreads > 1)
+                    {
+                        Thread.Sleep(500);
+                    }
+                }
             }
         }
 
         private void Start()
         {
-            object mLock = new object();
+            Random rand = new Random();
+            _threads = new Thread[_accounts.Count];
 
-            for (var i = 0; i < _threads.Length; i++)
+            for (int i = 0; i < _accounts.Count; i++)
             {
-                _threads[i] = new Thread(() =>
+                if (_programStatus.Equals(ProgramStatus.DELETED) || _programStatus.Equals(ProgramStatus.ERROR))
                 {
-                    lock (mLock)
-                    {
-                        Update();
-                    }
-                });
+                    Environment.Exit(-1);
+                }
 
-                _threads[i].Start();
+                _threads[i] = new Thread(Update);
+                _threads[i].Start(_accounts[i]);
+
+                _activeThreads++;
+                Thread.Sleep(rand.Next(100, 1000));
+
+                while (_activeThreads >= 50 || _programStatus.Equals(ProgramStatus.STOPPED))
+                {
+                    Thread.Sleep(500);
+                }
             }
         }
 
         private void Stop()
         {
-            for (var i = 0; i < _threads.Length; i++)
-            {
-                if (_threads[i] != null && _threads[i].IsAlive)
-                {
-                    _threads[i].Abort();
-                }
-            }
+            
         }
 
-        private void Update()
+        private void Update(object o)
         {
-            while (_accounts.MoveNext() && _accounts.Current != null)
+            Random rand = new Random();
+            Account account = (Account) o;
+
+            if (string.IsNullOrEmpty(account.userAgent))
             {
-                Account account = _accounts.Current;
-                SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.rucaptchaKey);
+                account.userAgent = _settings.useragents[rand.Next(0, _settings.useragents.Count)];
+            }
 
-                try
+            if (_settings.proxies.Count != 0)
+            {
+                account.proxy = _settings.proxies[rand.Next(0, _settings.proxies.Count)];
+            }
+
+            ApiService api = new ApiServiceImpl(_bindingKey);
+            SocialNetworkService vkCom = new VkcomServiceImpl(account, _settings.proxyType, _settings.rucaptchaKey);
+
+            api.AddLogs(new LogsRequestResource("Start", account.id));
+
+            try
+            {
+                if (vkCom.Auth())
                 {
-                    if (vkCom.Auth())
-                    {
-                        _api.SaveAccount(vkCom.GetCurrentUser());
-                        DoTasks(vkCom, account);
-                    }
+                    api.AddLogs(new LogsRequestResource("Authorization was successful", account.id));
+
+                    api.SaveAccount(vkCom.GetCurrentUser());
+                    DoTasks(api, vkCom, account);
                 }
-                catch (AuthorizationException e)
+                else
                 {
-                    Helper.Log.Error($"IN Update - Authorisation error, info: {e.Message}");
-
-                    account.status = AccountStatus.INVALID;
-                    _api.SaveAccount(account);
-                }
-                catch (NeedValidationException e)
-                {
-                    Helper.Log.Error($"IN Update - NeedValidation error, info: {e.Message}");
-
-                    account.status = AccountStatus.NEED_VALIDATION;
-                    _api.SaveAccount(account);
-                }
-                catch (Exception e)
-                {
-                    Helper.Log.Error($"IN Update - Not expected error, info: {e.Message}");
-
-                    account.status = AccountStatus.ERROR;
-                    _api.SaveAccount(account);
+                    api.AddLogs(new LogsRequestResource("Authorization failed", account.id));
                 }
             }
+            catch (AuthorizationException e)
+            {
+                Helper.Log.Error($"IN Update - Authorization error, info: {e.Message}");
+
+                account.status = AccountStatus.INVALID;
+                api.SaveAccount(account);
+            }
+            catch (NeedValidationException e)
+            {
+                Helper.Log.Error($"IN Update - NeedValidation error, info: {e.Message}");
+
+                account.status = AccountStatus.NEED_VALIDATION;
+                api.SaveAccount(account);
+            }
+            catch (Exception e)
+            {
+                Helper.Log.Error($"IN Update - Not expected error, info: {e.Message}");
+
+                account.status = AccountStatus.ERROR;
+                api.SaveAccount(account);
+            }
+
+            api.AddLogs(new LogsRequestResource("Stop", account.id));
+            _activeThreads--;
         }
 
-        private void DoTasks(SocialNetworkService vkCom, Account account)
+        private void DoTasks(ApiService api, SocialNetworkService vkCom, Account account)
         {
             List<Task> friends =
-                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
+                api.GetTasks(new FindTasksRequestResource(account.id, TaskType.FRIEND));
 
             if (friends.Count != 0)
             {
                 List<Task> tasksDone = vkCom.DoFriends(friends);
-                _api.MarkTasksCompleted(tasksDone, account.id);
+                api.MarkTasksCompleted(tasksDone, account.id);
+                api.AddLogs(new LogsRequestResource($"Completed {tasksDone.Count} tasks", account.id));
             }
 
             List<Task> groups =
-                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
+                api.GetTasks(new FindTasksRequestResource(account.id, TaskType.GROUP));
 
             if (groups.Count != 0)
             {
                 List<Task> tasksDone = vkCom.DoGroups(groups);
-                _api.MarkTasksCompleted(tasksDone, account.id);
+                api.MarkTasksCompleted(tasksDone, account.id);
+                api.AddLogs(new LogsRequestResource($"Completed {tasksDone.Count} tasks", account.id));
             }
 
             List<Task> likes =
-                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
+                api.GetTasks(new FindTasksRequestResource(account.id, TaskType.LIKE));
 
             if (likes.Count != 0)
             {
                 List<Task> tasksDone = vkCom.DoLikes(likes);
-                _api.MarkTasksCompleted(tasksDone, account.id);
+                api.MarkTasksCompleted(tasksDone, account.id);
+                api.AddLogs(new LogsRequestResource($"Completed {tasksDone.Count} tasks", account.id));
             }
 
             List<Task> reposts =
-                _api.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
+                api.GetTasks(new FindTasksRequestResource(account.id, TaskType.REPOST));
 
             if (reposts.Count != 0)
             {
                 List<Task> tasksDone = vkCom.DoReposts(reposts);
-                _api.MarkTasksCompleted(tasksDone, account.id);
+                api.MarkTasksCompleted(tasksDone, account.id);
+                api.AddLogs(new LogsRequestResource($"Completed {tasksDone.Count} tasks", account.id));
             }
         }
     }

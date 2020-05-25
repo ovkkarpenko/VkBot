@@ -1,4 +1,5 @@
 ﻿using System;
+using VkBot.Core.Entities;
 
 namespace VkBot
 {
@@ -6,7 +7,10 @@ namespace VkBot
     {
         public static void Main(string[] args)
         {
-            VkBot vkBot = new VkBot("JX659UlS3ZfjB1GaCauFUJJz5Vz2W8mthIQ0WUmABRG1j5esEaGQfUzLE4rfv8VTbnLzO9AadeJu31rFuQXm8wd8AAqutznvHDwA");
+            Console.Write("Enter program BindingKey: ");
+            string bindingKey = Console.ReadLine();
+            
+            VkBot vkBot = new VkBot(bindingKey);
             vkBot.Run();
 
             Console.ReadKey();

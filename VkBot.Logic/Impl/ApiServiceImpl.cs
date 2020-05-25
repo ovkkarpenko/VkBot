@@ -60,6 +60,12 @@ namespace VkBot.Logic.Impl
             return settings;
         }
 
+        public ProgramStatus GetProgramStatus()
+        {
+            Program program = _api.GetProgram();
+            return program?.status ?? ProgramStatus.DELETED;
+        }
+
         public List<Task> GetTasks(FindTasksRequestResource requestResource)
         {
             List<Task> tasks = _api.GetTasks(requestResource);
@@ -79,6 +85,11 @@ namespace VkBot.Logic.Impl
         {
             _api.SaveAccount(account);
             Helper.Log.Info($"IN SaveAccount - {account} account saved");
+        }
+
+        public void AddLogs(LogsRequestResource requestResource)
+        {
+            _api.AddLogs(requestResource);
         }
 
         public void MarkTasksCompleted(List<Task> tasks, int accountId)

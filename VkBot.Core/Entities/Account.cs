@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Leaf.xNet;
+using System;
 using VkBot.Core.Types;
 
 namespace VkBot.Core.Entities
@@ -42,6 +43,7 @@ namespace VkBot.Core.Entities
         public override string ToString()
         {
             return $"Account(" +
+                   $"id='{id}', " +
                    $"token='{token}', " +
                    $"userId='{userId}')";
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Leaf.xNet;
+using System.Collections.Generic;
 using VkBot.Core.Entities;
 using VkBot.Core.Utils;
 using VkBot.Data.Repositories.Vkcom;
@@ -13,10 +14,10 @@ namespace VkBot.Logic.Impl
 
         private readonly IHandleExceptions _handleExceptions;
         
-        public VkcomServiceImpl(Account account, string rucaptchaKey)
+        public VkcomServiceImpl(Account account, ProxyType proxyType, string rucaptchaKey)
         {
             _helper = new Helper();
-            _vkcom = new Vkcom(account, rucaptchaKey);
+            _vkcom = new Vkcom(account, proxyType, rucaptchaKey);
             _handleExceptions = new VkcomHandleExceptions();
         }
 
